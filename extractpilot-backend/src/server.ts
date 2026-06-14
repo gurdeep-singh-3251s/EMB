@@ -125,7 +125,7 @@ export class ApiServer {
     }
 
     if (url.pathname === "/api/docs" || url.pathname === "/api/docs/") {
-      const specUrl = `${url.origin}/api/openapi.json`;
+      const specUrl = `${this.env.auth.apiPublicUrl}/api/openapi.json`;
       return new Response(swaggerUiHtml(specUrl), {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
