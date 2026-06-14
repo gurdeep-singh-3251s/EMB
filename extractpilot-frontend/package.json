@@ -1,0 +1,32 @@
+{
+  "name": "extractpilot-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "bun --env-file=.env run next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@repo/config": "file:./packages/config",
+    "@repo/types": "file:./packages/types",
+    "@repo/ui": "file:./packages/ui",
+    "@repo/db": "file:./packages/db",
+    "@repo/dto": "file:./packages/dto",
+    "@tanstack/react-query": "^5.74.4",
+    "next": "^15.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "bun@1.2.14"
+}

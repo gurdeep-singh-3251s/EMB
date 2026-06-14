@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.git
+.cursor
+data
+docs/test-data/.eval-attachments
+*.md
+.env
+.env.*
+!.env.example

@@ -1,0 +1,18 @@
+{
+  "name": "@repo/feature-ingestion",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/types": "file:../../types",
+    "imapflow": "^1.0.184",
+    "mailparser": "^3.7.3"
+  },
+  "devDependencies": {
+    "@types/mailparser": "^3.4.5",
+    "typescript": "^5.8.3"
+  }
+}

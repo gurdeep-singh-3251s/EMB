@@ -1,0 +1,17 @@
+{
+  "name": "@repo/feature-failed-job",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/db": "file:../../db",
+    "@repo/dto": "file:../../dto",
+    "drizzle-orm": "^0.40.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": [
+      "bun"
+    ],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/*": [
+        "packages/*/src",
+        "packages/features/*/src"
+      ],
+      "@repo/config": [
+        "packages/config/src/env.ts"
+      ],
+      "@repo/config/paths": [
+        "packages/config/src/paths.ts"
+      ],
+      "@repo/config/plans": [
+        "packages/config/src/plans.ts"
+      ],
+      "@repo/db": [
+        "packages/db/src/index.ts"
+      ],
+      "@repo/db/schema": [
+        "packages/db/src/schema/index.ts"
+      ],
+      "@repo/dto": [
+        "packages/dto/src/dto.ts"
+      ],
+      "@repo/types/*": [
+        "packages/types/src/*"
+      ],
+      "@repo/feature-email": [
+        "packages/features/email/src/index.ts"
+      ],
+      "@repo/feature-user-query": [
+        "packages/features/userQuery/src/index.ts"
+      ],
+      "@repo/feature-ingestion": [
+        "packages/features/ingestion/src/index.ts"
+      ],
+      "@repo/feature-attachment": [
+        "packages/features/attachment/src/index.ts"
+      ],
+      "@repo/feature-failed-job": [
+        "packages/features/failedJob/src/index.ts"
+      ],
+      "@repo/feature-queue": [
+        "packages/features/queue/src/index.ts"
+      ],
+      "@repo/feature-extraction": [
+        "packages/features/extraction/src/index.ts"
+      ],
+      "@repo/feature-paddle-ocr": [
+        "packages/features/paddleOcr/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "packages/**/*",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

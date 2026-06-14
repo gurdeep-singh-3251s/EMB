@@ -1,0 +1,22 @@
+{
+  "name": "@repo/feature-user-query",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@repo/db": "file:../../db",
+    "@repo/dto": "file:../../dto",
+    "@repo/types": "file:../../types",
+    "drizzle-orm": "^0.40.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

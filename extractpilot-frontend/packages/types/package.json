@@ -1,0 +1,33 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./email": "./src/email.ts",
+    "./parsedEmail": "./src/parsedEmail.ts",
+    "./workerProcessing": "./src/workerProcessing.ts",
+    "./paddleOcr": "./src/paddleOcr.ts",
+    "./userQuery": "./src/userQuery.ts",
+    "./emailDetail": "./src/emailDetail.ts",
+    "./resultsTimeRange": "./src/resultsTimeRange.ts",
+    "./emailLookback": "./src/emailLookback.ts",
+    "./restTypes": "./src/restTypes.ts",
+    "./mailProviderOverrides": "./src/mailProviderOverrides.ts",
+    "./imapProviders": "./src/imapProviders.ts",
+    "./emailServicePort": "./src/emailServicePort.ts",
+    "./extractionProgress": "./src/extractionProgress.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@repo/config": "file:./packages/config",
+    "@repo/db": "file:./packages/db",
+    "@repo/dto": "file:./packages/dto"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.8.3"
+  }
+}

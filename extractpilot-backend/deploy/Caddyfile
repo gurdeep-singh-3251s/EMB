@@ -1,0 +1,10 @@
+# HTTPS reverse proxy for VPS + docker-compose.prod.yml
+# Replace domains, then: caddy run --config deploy/Caddyfile
+
+app.yourdomain.com {
+	reverse_proxy localhost:3000
+}
+
+api.yourdomain.com {
+	reverse_proxy localhost:3002
+}

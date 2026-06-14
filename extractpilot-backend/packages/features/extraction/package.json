@@ -1,0 +1,21 @@
+{
+  "name": "@repo/feature-extraction",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@repo/feature-paddle-ocr": "file:../paddleOcr",
+    "@repo/types": "file:../../types",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "^5.8.3"
+  }
+}

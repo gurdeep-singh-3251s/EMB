@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: extractpilot-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3002
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: REST_API_KEY
+        generateValue: true
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: ATTACHMENT_RETENTION_DAYS
+        value: "7"
+      - key: ATTACHMENT_MODE
+        value: stub
