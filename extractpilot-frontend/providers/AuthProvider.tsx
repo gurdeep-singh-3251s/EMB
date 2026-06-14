@@ -9,7 +9,7 @@ type AuthState = {
   loading: boolean;
   refresh: () => Promise<void>;
   signOut: () => void;
-  applyToken: (token: string) => Promise<void>;
+  applyToken: (token: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -44,12 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const applyToken = useCallback(async (token: string) => {
+  const applyToken = useCallback(async (token: string): Promise<boolean> => {
     setAuthToken(token);
     setLoading(true);
     const me = await fetchMe();
+    if (!me) {
+      clearAuthToken();
+      setUser(null);
+      setLoading(false);
+      return false;
+    }
     setUser(me);
     setLoading(false);
+    return true;
   }, []);
 
   const signOut = useCallback(() => {

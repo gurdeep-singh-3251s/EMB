@@ -16,8 +16,12 @@ function AuthCallbackInner() {
       router.replace("/login?error=oauth_token");
       return;
     }
-    void applyToken(token).then(() => {
-      router.replace(next.startsWith("/") ? next : "/dashboard");
+    void applyToken(token).then((ok) => {
+      if (ok) {
+        router.replace(next.startsWith("/") ? next : "/dashboard");
+      } else {
+        router.replace("/login?error=session");
+      }
     });
   }, [params, router, applyToken]);
 

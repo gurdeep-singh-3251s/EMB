@@ -1,4 +1,5 @@
 import type { Env } from "@repo/config";
+import { resolveApiPublicUrl } from "@repo/config";
 import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { authEnabled, extractBearerToken, signAccessToken, verifyAccessToken } from "../../auth/jwt";
 import { upsertGoogleUser } from "../../auth/userRepo";
@@ -8,8 +9,8 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-function oauthRedirectUri(env: Env): string {
-  return `${env.auth.apiPublicUrl}/api/v1/auth/google/callback`;
+function oauthRedirectUri(req: Request, env: Env): string {
+  return `${resolveApiPublicUrl(req, env.auth.apiPublicUrl)}/api/v1/auth/google/callback`;
 }
 
 class AuthHandler extends BaseRestController {
@@ -21,7 +22,7 @@ class AuthHandler extends BaseRestController {
     const next = new URL(req.url).searchParams.get("state") ?? "/dashboard";
     const params = new URLSearchParams({
       client_id: this.deps.env.auth.googleClientId,
-      redirect_uri: oauthRedirectUri(this.deps.env),
+      redirect_uri: oauthRedirectUri(req, this.deps.env),
       response_type: "code",
       scope: "openid email profile",
       access_type: "online",
@@ -53,7 +54,7 @@ class AuthHandler extends BaseRestController {
         code,
         client_id: this.deps.env.auth.googleClientId,
         client_secret: this.deps.env.auth.googleClientSecret,
-        redirect_uri: oauthRedirectUri(this.deps.env),
+        redirect_uri: oauthRedirectUri(req, this.deps.env),
         grant_type: "authorization_code",
       }),
     });

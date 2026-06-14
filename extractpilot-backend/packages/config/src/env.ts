@@ -25,6 +25,21 @@ function envEnum<T extends string>(name: string, allowed: readonly T[], fallback
   return raw as T;
 }
 
+/** OAuth + Swagger public URL. Prefer API_PUBLIC_URL; fall back to proxy headers on Render/Vercel. */
+export function resolveApiPublicUrl(req: Request, fallback: string): string {
+  const configured = process.env.API_PUBLIC_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+
+  const host = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim()
+    ?? req.headers.get("host")?.trim();
+  if (!host || host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
+    return fallback.replace(/\/$/, "");
+  }
+
+  const proto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? "https";
+  return `${proto}://${host}`.replace(/\/$/, "");
+}
+
 export function loadEnv() {
   const databaseUrl = process.env.DATABASE_URL ?? "";
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();

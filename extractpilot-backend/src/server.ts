@@ -4,6 +4,7 @@ import type { Redis } from "ioredis";
 import { appRouter } from "./bootstrap/appRouter";
 import type { AppContext } from "./appContext";
 import type { Env } from "@repo/config";
+import { resolveApiPublicUrl } from "@repo/config";
 import { isRequestAuthorized } from "./auth/apiKey";
 import { handleApiV1Request, securityHeaders } from "./rest/router";
 import { openApiSpec } from "./rest/swagger/openapiSpec";
@@ -125,7 +126,7 @@ export class ApiServer {
     }
 
     if (url.pathname === "/api/docs" || url.pathname === "/api/docs/") {
-      const specUrl = `${this.env.auth.apiPublicUrl}/api/openapi.json`;
+      const specUrl = `${resolveApiPublicUrl(req, this.env.auth.apiPublicUrl)}/api/openapi.json`;
       return new Response(swaggerUiHtml(specUrl), {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });

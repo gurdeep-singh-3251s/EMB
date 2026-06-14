@@ -8,6 +8,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   oauth_denied: "Google sign-in was cancelled.",
   oauth_token: "Could not complete Google sign-in. Try again.",
   oauth_profile: "Could not read your Google profile.",
+  session: "Signed in with Google but the session could not be verified. Check API_URL on Vercel.",
 };
 
 export default function LoginPage() {
