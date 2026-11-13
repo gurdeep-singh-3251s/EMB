@@ -8,3 +8,5 @@ This project is split into **two independent apps** (no turborepo):
 | [extractpilot-frontend](./extractpilot-frontend) | Next.js | `cd extractpilot-frontend && bun install && bun run dev` |
 
 Deploy: see `docs/DEPLOY-SPLIT.md` inside each folder.
+
+**Local infra:** `docker compose up -d` (Postgres on `localhost:5433`, Redis on `6379`). See `SECURITY.md` for production checklist.

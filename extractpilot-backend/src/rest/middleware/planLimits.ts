@@ -1,7 +1,8 @@
-import { count, eq, gte } from "drizzle-orm";
+import { and, count, eq, gte } from "drizzle-orm";
 import { emails, workspaceBilling } from "@repo/db/schema";
 import { DEFAULT_PLAN_ID, PLANS, type PlanId } from "@repo/config/plans";
 import type { Database } from "@repo/db";
+import { aggregateLlmUsageByModel } from "../../infra/llmUsage";
 import type { Env } from "@repo/config";
 
 function startOfUtcDay(): Date {
@@ -24,34 +25,39 @@ function quotaWindowStart(period: "day" | "week"): Date {
 }
 
 export function resolveActivePlanId(envPlan?: string): PlanId {
-  if (envPlan === "standard" || envPlan === "premium" || envPlan === "free") {
+  if (envPlan === "standard" || envPlan === "premium" || envPlan === "enterprise" || envPlan === "free") {
     return envPlan;
   }
   return DEFAULT_PLAN_ID;
 }
 
-export async function getActivePlanId(db: Database, env: Env): Promise<PlanId> {
-  try {
-    const [row] = await db
-      .select()
-      .from(workspaceBilling)
-      .where(eq(workspaceBilling.id, "default"))
-      .limit(1);
+export async function getActivePlanId(db: Database, env: Env, userId?: string | null): Promise<PlanId> {
+  if (userId) {
+    try {
+      const [row] = await db
+        .select()
+        .from(workspaceBilling)
+        .where(eq(workspaceBilling.id, userId))
+        .limit(1);
 
-    if (row?.subscriptionStatus === "active") {
-      const pid = row.planId;
-      if (pid === "standard" || pid === "premium" || pid === "free") {
-        return pid;
+      if (row?.subscriptionStatus === "active") {
+        const pid = row.planId;
+        if (pid === "standard" || pid === "premium" || pid === "enterprise" || pid === "free") {
+          return pid;
+        }
       }
+    } catch {
+      // Table may not exist until first db:push
     }
-  } catch {
-    // Table may not exist until first db:push
+    return "free";
   }
+
   return resolveActivePlanId(env.activePlan);
 }
 
 export async function upsertWorkspaceBilling(
   db: Database,
+  userId: string,
   data: {
     planId: PlanId;
     stripeCustomerId?: string | null;
@@ -59,11 +65,7 @@ export async function upsertWorkspaceBilling(
     subscriptionStatus: string;
   },
 ): Promise<void> {
-  const [existing] = await db
-    .select()
-    .from(workspaceBilling)
-    .where(eq(workspaceBilling.id, "default"))
-    .limit(1);
+  const [existing] = await db.select().from(workspaceBilling).where(eq(workspaceBilling.id, userId)).limit(1);
 
   if (existing) {
     await db
@@ -75,12 +77,12 @@ export async function upsertWorkspaceBilling(
         subscriptionStatus: data.subscriptionStatus,
         updatedAt: new Date(),
       })
-      .where(eq(workspaceBilling.id, "default"));
+      .where(eq(workspaceBilling.id, userId));
     return;
   }
 
   await db.insert(workspaceBilling).values({
-    id: "default",
+    id: userId,
     planId: data.planId,
     stripeCustomerId: data.stripeCustomerId ?? null,
     stripeSubscriptionId: data.stripeSubscriptionId ?? null,
@@ -88,19 +90,23 @@ export async function upsertWorkspaceBilling(
   });
 }
 
-export async function getBillingRow(db: Database) {
-  const [row] = await db
-    .select()
-    .from(workspaceBilling)
-    .where(eq(workspaceBilling.id, "default"))
-    .limit(1);
+export async function getBillingRow(db: Database, userId: string) {
+  const [row] = await db.select().from(workspaceBilling).where(eq(workspaceBilling.id, userId)).limit(1);
   return row ?? null;
+}
+
+function usageWhere(userId: string | null | undefined, since: Date) {
+  const timeClause = gte(emails.createdAt, since);
+  if (userId) {
+    return and(eq(emails.ownerUserId, userId), timeClause);
+  }
+  return timeClause;
 }
 
 export async function checkExtractionAllowed(
   db: Database,
   planId: PlanId,
-  options?: { unlimited?: boolean },
+  options?: { unlimited?: boolean; userId?: string | null },
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (options?.unlimited) {
     return { ok: true };
@@ -108,11 +114,12 @@ export async function checkExtractionAllowed(
 
   const plan = PLANS[planId];
   const periodStart = quotaWindowStart(plan.limits.emailQuotaPeriod);
+  const userId = options?.userId;
 
   const [periodRow] = await db
     .select({ total: count() })
     .from(emails)
-    .where(gte(emails.createdAt, periodStart));
+    .where(usageWhere(userId, periodStart));
 
   const periodCount = Number(periodRow?.total ?? 0);
   const periodLabel = plan.limits.emailQuotaPeriod === "day" ? "day" : "week";
@@ -127,7 +134,7 @@ export async function checkExtractionAllowed(
   const [dayRow] = await db
     .select({ total: count() })
     .from(emails)
-    .where(gte(emails.createdAt, dayStart));
+    .where(usageWhere(userId, dayStart));
 
   const dailyCount = Number(dayRow?.total ?? 0);
   if (dailyCount >= plan.limits.extractionsPerDay) {
@@ -143,21 +150,26 @@ export async function checkExtractionAllowed(
 export async function getUsageSnapshot(
   db: Database,
   planId: PlanId,
-  options?: { unlimited?: boolean },
+  options?: { unlimited?: boolean; userId?: string | null },
 ) {
   const plan = PLANS[planId];
   const unlimited = options?.unlimited === true;
+  const userId = options?.userId;
   const periodStart = quotaWindowStart(plan.limits.emailQuotaPeriod);
   const dayStart = startOfUtcDay();
 
   const [periodRow] = await db
     .select({ total: count() })
     .from(emails)
-    .where(gte(emails.createdAt, periodStart));
+    .where(usageWhere(userId, periodStart));
   const [dayRow] = await db
     .select({ total: count() })
     .from(emails)
-    .where(gte(emails.createdAt, dayStart));
+    .where(usageWhere(userId, dayStart));
+
+  const llmByModel = userId ? await aggregateLlmUsageByModel(db, userId, 30) : [];
+  const llmTokens30d = llmByModel.reduce((sum, row) => sum + row.totalTokens, 0);
+  const llmEstCost30dUsd = llmByModel.reduce((sum, row) => sum + row.estCostUsd, 0);
 
   return {
     planId,
@@ -168,5 +180,8 @@ export async function getUsageSnapshot(
     extractionsToday: Number(dayRow?.total ?? 0),
     extractionsLimitDay: unlimited ? null : plan.limits.extractionsPerDay,
     unlimitedQuota: unlimited,
+    llmByModel,
+    llmTokens30d,
+    llmEstCost30dUsd: Math.round(llmEstCost30dUsd * 10_000) / 10_000,
   };
 }

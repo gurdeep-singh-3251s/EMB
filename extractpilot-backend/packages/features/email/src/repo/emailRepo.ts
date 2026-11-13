@@ -53,6 +53,7 @@ function mapEmailDetail(row: EmailRow): EmailDetail {
     processingStatus: row.processingStatus as ProcessingStatus,
     attachmentCount: row.attachmentCount,
     createdAt: row.createdAt,
+    ownerUserId: row.ownerUserId ?? null,
     rawContent: row.rawContent,
     userQueryId: row.userQueryId ?? null,
     userQuerySchema: asRecordOrNull(row.userQuerySchema),
@@ -84,11 +85,22 @@ function mapSavedPendingRow(row: {
 export class EmailRepo implements IEmailRepo {
   constructor(private readonly deps: EmailRepoDeps) {}
 
+  private tenantWhere(extra?: ReturnType<typeof eq>) {
+    const clauses = [];
+    if (this.deps.ownerUserId) {
+      clauses.push(eq(emails.ownerUserId, this.deps.ownerUserId));
+    }
+    if (extra) clauses.push(extra);
+    if (clauses.length === 0) return undefined;
+    if (clauses.length === 1) return clauses[0];
+    return and(...clauses);
+  }
+
   async list(limit: number, offset: number, status?: ProcessingStatus): Promise<EmailListItem[]> {
     const rows = await this.deps.db
       .select()
       .from(emails)
-      .where(status ? eq(emails.processingStatus, status) : undefined)
+      .where(this.tenantWhere(status ? eq(emails.processingStatus, status) : undefined))
       .orderBy(desc(emails.createdAt))
       .limit(limit)
       .offset(offset);
@@ -106,14 +118,17 @@ export class EmailRepo implements IEmailRepo {
   }
 
   async byId(id: string): Promise<EmailDetail | null> {
-    const [row] = await this.deps.db.select().from(emails).where(eq(emails.id, id)).limit(1);
+    const [row] = await this.deps.db.select().from(emails).where(this.tenantWhere(eq(emails.id, id))).limit(1);
     if (!row) return null;
     return mapEmailDetail(row as EmailRow);
   }
 
   async byIds(ids: string[]): Promise<Array<EmailDetail>> {
     if (ids.length === 0) return [];
-    const rows = await this.deps.db.select().from(emails).where(inArray(emails.id, ids));
+    const rows = await this.deps.db
+      .select()
+      .from(emails)
+      .where(this.tenantWhere(inArray(emails.id, ids)));
     return rows.map((row: EmailRow) => mapEmailDetail(row));
   }
 
@@ -121,6 +136,7 @@ export class EmailRepo implements IEmailRepo {
     const rows = await this.deps.db
       .select({ status: emails.processingStatus, total: count() })
       .from(emails)
+      .where(this.tenantWhere())
       .groupBy(emails.processingStatus);
 
     const base: Record<ProcessingStatus, number> = {
@@ -141,7 +157,9 @@ export class EmailRepo implements IEmailRepo {
     const [existing] = await this.deps.db
       .select({ id: emails.id })
       .from(emails)
-      .where(and(eq(emails.provider, data.provider), eq(emails.messageId, data.messageId)))
+      .where(
+        this.tenantWhere(and(eq(emails.provider, data.provider), eq(emails.messageId, data.messageId))),
+      )
       .limit(1);
 
     if (existing) return existing.id;
@@ -160,6 +178,7 @@ export class EmailRepo implements IEmailRepo {
         receivedAt: data.receivedAt,
         userQueryId: data.userQueryId,
         userQuerySchema: data.userQuerySchema,
+        ownerUserId: this.deps.ownerUserId ?? null,
         createdAt,
       })
       .returning({ id: emails.id });
@@ -186,6 +205,7 @@ export class EmailRepo implements IEmailRepo {
           receivedAt: i.receivedAt,
           userQueryId: i.userQueryId,
           userQuerySchema: i.userQuerySchema,
+          ownerUserId: this.deps.ownerUserId ?? null,
           createdAt,
         })),
       )
@@ -206,7 +226,9 @@ export class EmailRepo implements IEmailRepo {
         userQueryId: emails.userQueryId,
       })
       .from(emails)
-      .where(and(inArray(emails.messageId, messageIds), inArray(emails.provider, providers)));
+      .where(
+        this.tenantWhere(and(inArray(emails.messageId, messageIds), inArray(emails.provider, providers))),
+      );
 
     const byKey = new Map<
       string,

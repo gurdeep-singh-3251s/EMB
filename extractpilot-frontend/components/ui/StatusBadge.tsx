@@ -4,8 +4,8 @@ const tones = {
   success: "bg-emerald-50 text-emerald-800 ring-emerald-200",
   warning: "bg-amber-50 text-amber-900 ring-amber-200",
   danger: "bg-rose-50 text-rose-800 ring-rose-200",
-  info: "bg-blue-50 text-blue-800 ring-blue-200",
-  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
+  info: "bg-moss/10 text-moss ring-moss/25",
+  neutral: "bg-ink/5 text-ink-muted ring-ink/10",
 };
 
 export function StatusBadge({ status }: { status: string }) {

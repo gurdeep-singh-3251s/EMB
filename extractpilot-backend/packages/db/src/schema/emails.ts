@@ -8,12 +8,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { pgTable } from "drizzle-orm/pg-core/table";
 import { uniqueIndex } from "drizzle-orm/pg-core";
+import { users } from "./users";
 import { userQueries } from "./userQueries";
 
 export const emails = pgTable(
   "emails",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "cascade" }),
     provider: varchar("provider", { length: 32 }).notNull(),
     messageId: varchar("message_id", { length: 512 }).notNull(),
     sender: varchar("sender", { length: 512 }),
@@ -44,6 +46,10 @@ export const emails = pgTable(
     processingCompletedAt: timestamp("processing_completed_at", { withTimezone: true }),
   },
   (t) => ({
-    providerMessageUnique: uniqueIndex("emails_provider_message_id_uq").on(t.provider, t.messageId),
+    tenantProviderMessageUnique: uniqueIndex("emails_owner_provider_message_uq").on(
+      t.ownerUserId,
+      t.provider,
+      t.messageId,
+    ),
   }),
 );

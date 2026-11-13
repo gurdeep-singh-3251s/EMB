@@ -47,7 +47,12 @@ export class FinalExtractionService implements IFinalExtractionService {
         })),
     });
 
-    const raw = await this.openRouter.completeJson(prompt, { step: "final-extract", model: this.model });
+    const model = input.userQuery.extractModel?.trim() || this.model;
+    const raw = await this.openRouter.completeJson(prompt, {
+      step: "final-extract",
+      model,
+      ownerUserId: input.ownerUserId,
+    });
     const allowedKeys = new Set(Object.keys(fields));
     const sanitized = sanitizeExtractedRecord(
       allowedKeys,

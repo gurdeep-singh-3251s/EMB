@@ -27,6 +27,12 @@
       "@repo/config/plans": [
         "packages/config/src/plans.ts"
       ],
+      "@repo/config/llmModels": [
+        "packages/config/src/llmModels.ts"
+      ],
+      "@repo/config/promptTemplates": [
+        "packages/config/src/promptTemplates.ts"
+      ],
       "@repo/db": [
         "packages/db/src/index.ts"
       ],

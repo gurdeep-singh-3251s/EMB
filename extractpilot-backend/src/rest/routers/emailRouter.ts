@@ -3,11 +3,17 @@ import { existsSync } from "node:fs";
 import { resolveAttachmentLocalPath } from "@repo/config/paths";
 import type { ParsedEmailResult } from "@repo/types/parsedEmail";
 import type { RestHandlerDeps, RestStoredEmailAttachment } from "@repo/types/restTypes";
+import { ProcessingStatus } from "@repo/types/email";
 import { BaseRestController } from "../helper/init";
+import { getRequestTenantUserId } from "../requestContext";
+import { recordWorkspaceAudit } from "../../infra/workspaceIntegrations";
 
 const listQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
+  status: z
+    .enum(["pending", "processing", "completed", "failed", "partial", "skipped"])
+  .optional(),
 });
 
 const emailIdSchema = z.string().uuid();
@@ -43,12 +49,32 @@ class EmailHandler extends BaseRestController {
     const parsed = listQuerySchema.safeParse({
       limit: url.searchParams.get("limit") ?? undefined,
       offset: url.searchParams.get("offset") ?? undefined,
+      status: url.searchParams.get("status") ?? undefined,
     });
     if (!parsed.success) {
       return this.validationError(parsed.error.message, parsed.error.flatten());
     }
-    const result = await this.ctx.services.email.list(parsed.data);
+    const result = await this.ctx.services.email.list({
+      ...parsed.data,
+      status: parsed.data.status as ProcessingStatus | undefined,
+    });
     return this.fromDto(result);
+  }
+
+  async reviewQueue(url: URL): Promise<Response> {
+    const partial = await this.ctx.services.email.list({ limit: 30, offset: 0, status: ProcessingStatus.Partial });
+    const failed = await this.ctx.services.email.list({ limit: 20, offset: 0, status: ProcessingStatus.Failed });
+    if (!partial.success) return this.fromDto(partial);
+    if (!failed.success) return this.fromDto(failed);
+    return this.success(
+      {
+        partial: partial.data,
+        failed: failed.data,
+        total: partial.data.length + failed.data.length,
+      },
+      null,
+      200,
+    );
   }
 
   async byId(emailId: string): Promise<Response> {
@@ -81,6 +107,10 @@ class EmailHandler extends BaseRestController {
       return this.fromDto(result);
     }
     const data = this.toEmailDetailRestData(result.data);
+    const userId = getRequestTenantUserId();
+    if (userId) {
+      await recordWorkspaceAudit(this.deps.getDb(), userId, "email.human_review", { emailId });
+    }
     return this.success(data, "Corrections saved", 200);
   }
 
@@ -111,7 +141,14 @@ class EmailHandler extends BaseRestController {
     for (const row of attRes.data) {
       seen.add(row.filename);
       const pipeline = pipelineByName.get(row.filename);
-      const filePath = resolveAttachmentLocalPath(row.localPath, root);
+      let filePath = "";
+      let downloadable = false;
+      try {
+        filePath = resolveAttachmentLocalPath(row.localPath, root);
+        downloadable = existsSync(filePath);
+      } catch {
+        downloadable = false;
+      }
       items.push({
         id: row.id,
         filename: row.filename,
@@ -125,7 +162,7 @@ class EmailHandler extends BaseRestController {
           (pipeline?.data as Record<string, unknown> | null) ??
           (row.parsedJson as Record<string, unknown> | null) ??
           null,
-        downloadable: existsSync(filePath),
+        downloadable,
       });
     }
 
@@ -164,7 +201,15 @@ class EmailHandler extends BaseRestController {
       return this.notFound("Attachment not found");
     }
 
-    const filePath = resolveAttachmentLocalPath(row.localPath, this.deps.env.attachmentsRoot);
+    let filePath: string;
+    try {
+      filePath = resolveAttachmentLocalPath(row.localPath, this.deps.env.attachmentsRoot);
+    } catch {
+      return Response.json(
+        { success: false, message: "Invalid attachment path", error: null },
+        { status: 400 },
+      );
+    }
     if (!existsSync(filePath)) {
       return this.notFound("Attachment file not found on disk");
     }
@@ -187,6 +232,10 @@ async function handleEmailRouter(req: Request, deps: RestHandlerDeps): Promise<R
 
   if (path === "/api/v1/emails/stats" && req.method === "GET") {
     return handler.stats();
+  }
+
+  if (path === "/api/v1/emails/review-queue" && req.method === "GET") {
+    return handler.reviewQueue(url);
   }
 
   if (path === "/api/v1/emails" && req.method === "GET") {

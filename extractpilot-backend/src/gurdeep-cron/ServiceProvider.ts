@@ -9,9 +9,7 @@ import EmailServiceImpl from "./email-provider/service/EmailServiceImpl";
 import type { createEmailProcessingQueue } from "./email-provider/provider/emailQueueProvider";
 
 class ServiceProvider {
-  private readonly emailService: ReturnType<typeof createEmailService>;
-  private readonly attachmentRepo: IAttachmentRepo;
-  private readonly userQueryRepo: IUserQueryRepo;
+  private readonly db: ReturnType<typeof createDb>;
   private readonly progressPublisher: ExtractionProgressPublisher;
   private _email: EmailService | undefined;
 
@@ -20,20 +18,31 @@ class ServiceProvider {
     private readonly queue: ReturnType<typeof createEmailProcessingQueue>,
     progressPublisher: ExtractionProgressPublisher,
   ) {
-    const db = createDb(env.databaseUrl);
+    this.db = createDb(env.databaseUrl);
     this.progressPublisher = progressPublisher;
-    this.emailService = createEmailService(db, { progressPublisher });
-    this.attachmentRepo = createAttachmentRepo(db);
-    this.userQueryRepo = createUserQueryRepo(db);
   }
 
+  runnerForUser(ownerUserId: string): EmailService {
+    const emailService = createEmailService(this.db, {
+      ownerUserId,
+      progressPublisher: this.progressPublisher,
+    });
+    const attachmentRepo = createAttachmentRepo(this.db);
+    const userQueryRepo = createUserQueryRepo(this.db, { ownerUserId });
+    return new EmailServiceImpl(this.env, this.queue, emailService, attachmentRepo, userQueryRepo);
+  }
+
+  /** @deprecated Use runnerForUser(tenantId) for SaaS requests */
   get emails(): EmailService {
+    const emailService = createEmailService(this.db, { progressPublisher: this.progressPublisher });
+    const attachmentRepo = createAttachmentRepo(this.db);
+    const userQueryRepo = createUserQueryRepo(this.db);
     return (this._email ??= new EmailServiceImpl(
       this.env,
       this.queue,
-      this.emailService,
-      this.attachmentRepo,
-      this.userQueryRepo,
+      emailService,
+      attachmentRepo,
+      userQueryRepo,
     ));
   }
 }

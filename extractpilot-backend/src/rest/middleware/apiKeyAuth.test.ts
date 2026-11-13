@@ -31,7 +31,7 @@ describe("validateRestApiKey", () => {
     expect(await validateRestApiKey(req, envWithKey("secret-key-123"))).toBeNull();
   });
 
-  test("accepts Bearer token", async () => {
+  test("accepts Bearer API key when OAuth is off", async () => {
     const req = new Request("http://localhost/api/v1/user-query", {
       headers: { Authorization: "Bearer secret-key-123" },
     });

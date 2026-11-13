@@ -65,6 +65,7 @@ function buildClassifyEmailInput(
     sender: ctx.emailRow.sender ?? "",
     rawContent: ctx.emailRow.rawContent ?? "",
     attachments,
+    ownerUserId: ctx.ownerUserId,
   };
   return input;
 }
@@ -79,6 +80,7 @@ function buildFinalExtractInput(ctx: ProcessingContext): FinalExtractInput {
     sender: ctx.emailRow.sender ?? "",
     rawContent: ctx.emailRow.rawContent ?? "",
     attachmentRows: ctx.attachmentRows,
+    ownerUserId: ctx.ownerUserId,
   };
   return input;
 }

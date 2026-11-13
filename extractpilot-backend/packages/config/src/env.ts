@@ -70,8 +70,31 @@ export function loadEnv() {
     attachmentMode: envEnum("ATTACHMENT_MODE", ["stub", "full"] as const, "stub"),
     pipelineDebug: process.env.PIPELINE_DEBUG === "true",
     requireActiveUserQuery: process.env.REQUIRE_ACTIVE_USER_QUERY !== "false",
-    /** When set, REST /api/v1/* requires Authorization: Bearer or X-API-Key (except /plans, /usage). */
+    /** Server-to-server integrator key (use X-API-Key header only when OAuth is on). */
     restApiKey: process.env.REST_API_KEY?.trim() ?? "",
+    /**
+     * When true, X-API-Key may authenticate non-interactive clients if OAuth is enabled.
+     * Bearer REST_API_KEY is never accepted in production OAuth mode (JWT only).
+     */
+    integratorApiKeyEnabled: process.env.ALLOW_INTEGRATOR_API_KEY === "true",
+    restBodyMaxBytes: envNumber("REST_BODY_MAX_BYTES", 1_048_576),
+    rateLimitPublicPerMinute: envNumber("RATE_LIMIT_PUBLIC_PER_MINUTE", 120),
+    rateLimitGlobalIpPerMinute: envNumber("RATE_LIMIT_GLOBAL_IP_PER_MINUTE", 300),
+    rateLimitExtractPerMinute: envNumber("RATE_LIMIT_EXTRACT_PER_MINUTE", 6),
+    cachePublicTtlSeconds: envNumber("CACHE_PUBLIC_TTL_SECONDS", 60),
+    cachePlansTtlSeconds: envNumber("CACHE_PLANS_TTL_SECONDS", 30),
+    extractDebounceSeconds: envNumber("EXTRACT_DEBOUNCE_SECONDS", 15),
+    userQueryDebounceSeconds: envNumber("USER_QUERY_DEBOUNCE_SECONDS", 5),
+    queue: {
+      jobAttempts: envNumber("QUEUE_JOB_ATTEMPTS", 3),
+      backoffMs: envNumber("QUEUE_BACKOFF_MS", 5000),
+      removeOnCompleteCount: envNumber("QUEUE_REMOVE_ON_COMPLETE_COUNT", 2000),
+      removeOnFailCount: envNumber("QUEUE_REMOVE_ON_FAIL_COUNT", 5000),
+    },
+    workerLimiter: {
+      max: envNumber("WORKER_LIMITER_MAX", 20),
+      durationMs: envNumber("WORKER_LIMITER_DURATION_MS", 1000),
+    },
     auth: {
       jwtSecret: process.env.JWT_ACCESS_SECRET?.trim() ?? "",
       googleClientId: process.env.GOOGLE_CLIENT_ID?.trim() ?? "",
@@ -81,12 +104,20 @@ export function loadEnv() {
     },
     attachmentRetentionDays: envNumber("ATTACHMENT_RETENTION_DAYS", 7),
     /** Workspace plan fallback when no Stripe subscription in DB: free | standard | premium */
-    activePlan: envEnum("ACTIVE_PLAN", ["free", "standard", "premium"] as const, "free"),
+    activePlan: envEnum("ACTIVE_PLAN", ["free", "standard", "premium", "enterprise"] as const, "free"),
     stripe: {
       secretKey: process.env.STRIPE_SECRET_KEY?.trim() ?? "",
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "",
+      /** Premium tier ($29.99/mo) — plan id `standard` in API */
       priceStandard: process.env.STRIPE_PRICE_STANDARD?.trim() ?? "",
+      /** Business tier ($49.99/mo) — plan id `premium` in API */
       pricePremium: process.env.STRIPE_PRICE_PREMIUM?.trim() ?? "",
+      /** Enterprise ($99.99/mo) */
+      priceEnterprise: process.env.STRIPE_PRICE_ENTERPRISE?.trim() ?? "",
+      /** One-time Connect your business setup ($99.99) */
+      priceSetup: process.env.STRIPE_PRICE_SETUP?.trim() ?? "",
+      /** Stripe coupon id — e.g. 50% off first month (duration: once) */
+      firstMonthCoupon: process.env.STRIPE_COUPON_FIRST_MONTH?.trim() ?? "",
     },
     /** When false (default), Stripe checkout/portal are disabled — beta invite-only mode. */
     enableBilling: process.env.ENABLE_BILLING === "true",
@@ -106,12 +137,21 @@ export function loadEnv() {
     maxFailedEmailRequeues: envNumber("MAX_FAILED_EMAIL_REQUEUES", 3),
     openRouter: {
       apiKey: openRouterKey ?? "",
-      model: process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
-      classifyModel: process.env.OPENROUTER_CLASSIFY_MODEL ?? process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
-      extractModel: process.env.OPENROUTER_EXTRACT_MODEL ?? process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
+      model: process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
+      classifyModel: process.env.OPENROUTER_CLASSIFY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
+      extractModel: process.env.OPENROUTER_EXTRACT_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
       baseUrl: process.env.OPENROUTER_BASE_URL,
       debug: process.env.OPENROUTER_DEBUG === "true",
       debugMaxChars: envNumber("OPENROUTER_DEBUG_MAX_CHARS", 4000),
+    },
+    llm: {
+      /** Comma-separated OpenRouter model ids — when set, only these appear for all plans (admin curated). */
+      modelAllowlist: (process.env.LLM_MODEL_ALLOWLIST ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      /** When true, only Enterprise workspaces may choose non-default classify/extract models. */
+      onlyEnterpriseCanPickModels: process.env.LLM_ONLY_ENTERPRISE_CAN_PICK === "true",
     },
     paddleOcr: {
       apiMode: resolvePaddleOcrApiMode(),

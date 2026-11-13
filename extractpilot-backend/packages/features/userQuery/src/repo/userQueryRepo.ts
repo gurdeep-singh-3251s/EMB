@@ -34,8 +34,11 @@ function toRow(row: typeof userQueries.$inferSelect): UserQueryRow {
   const emailFields = schema.email && typeof schema.email === "object" ? asRecord(schema.email) : schema;
   return {
     id: row.id,
+    name: row.name ?? null,
     userQuery: row.userQuery,
     outputSchema: emailFields,
+    classifyModel: row.classifyModel ?? null,
+    extractModel: row.extractModel ?? null,
     status: row.status as UserQueryRow["status"],
     createdAt: row.createdAt,
   };
@@ -62,11 +65,22 @@ function buildResultsWhere(userQueryId: string, options: ListUserQueryResultsOpt
 export class UserQueryRepo implements IUserQueryRepo {
   constructor(private readonly deps: UserQueryRepoDeps) {}
 
+  private tenantWhere(extra?: ReturnType<typeof eq>) {
+    const clauses = [];
+    if (this.deps.ownerUserId) {
+      clauses.push(eq(userQueries.ownerUserId, this.deps.ownerUserId));
+    }
+    if (extra) clauses.push(extra);
+    if (clauses.length === 0) return undefined;
+    if (clauses.length === 1) return clauses[0];
+    return and(...clauses);
+  }
+
   async deactivateAllActive(): Promise<void> {
     await this.deps.db
       .update(userQueries)
       .set({ status: "closed" })
-      .where(eq(userQueries.status, "active"));
+      .where(this.tenantWhere(eq(userQueries.status, "active")));
   }
 
   async createActive(input: CreateUserQueryInput): Promise<UserQueryRow> {
@@ -74,9 +88,13 @@ export class UserQueryRepo implements IUserQueryRepo {
     const [inserted] = await this.deps.db
       .insert(userQueries)
       .values({
+        name: input.name?.trim() || null,
         userQuery: input.userQuery,
         outputSchema: wrapOutputSchema(input.outputSchema),
+        classifyModel: input.classifyModel?.trim() || null,
+        extractModel: input.extractModel?.trim() || null,
         status: "active",
+        ownerUserId: this.deps.ownerUserId ?? null,
       })
       .returning();
     return toRow(inserted!);
@@ -86,7 +104,7 @@ export class UserQueryRepo implements IUserQueryRepo {
     const [row] = await this.deps.db
       .select()
       .from(userQueries)
-      .where(eq(userQueries.status, "active"))
+      .where(this.tenantWhere(eq(userQueries.status, "active")))
       .orderBy(desc(userQueries.createdAt))
       .limit(1);
     return row ? toRow(row) : null;
@@ -96,9 +114,38 @@ export class UserQueryRepo implements IUserQueryRepo {
     const [row] = await this.deps.db
       .select()
       .from(userQueries)
-      .where(eq(userQueries.id, id))
+      .where(this.tenantWhere(eq(userQueries.id, id)))
       .limit(1);
     return row ? toRow(row) : null;
+  }
+
+  async listRecent(limit: number, offset: number): Promise<{ items: UserQueryRow[]; total: number }> {
+    const where = this.tenantWhere();
+    const [totalRow] = await this.deps.db.select({ total: count() }).from(userQueries).where(where);
+    const total = Number(totalRow?.total ?? 0);
+    const rows = await this.deps.db
+      .select()
+      .from(userQueries)
+      .where(where)
+      .orderBy(desc(userQueries.createdAt))
+      .limit(limit)
+      .offset(offset);
+    return { items: rows.map(toRow), total };
+  }
+
+  async activateById(id: string): Promise<UserQueryRow | null> {
+    const existing = await this.byId(id);
+    if (!existing) return null;
+    await this.deps.db
+      .update(userQueries)
+      .set({ status: "closed" })
+      .where(this.tenantWhere(eq(userQueries.status, "active")));
+    const [updated] = await this.deps.db
+      .update(userQueries)
+      .set({ status: "active" })
+      .where(this.tenantWhere(eq(userQueries.id, id)))
+      .returning();
+    return updated ? toRow(updated) : null;
   }
 
   async listResults(

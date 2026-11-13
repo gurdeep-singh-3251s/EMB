@@ -4,8 +4,10 @@ import { Panel } from "@/components/ui/Panel";
 import { LinkButton } from "@/components/ui/LinkButton";
 
 const FLOW = [
-  { method: "POST", path: "/api/v1/user-query", desc: "Define extraction query + JSON output schema" },
-  { method: "PUT", path: "/api/v1/mailbox/config", desc: "Connect IMAP (Gmail, Outlook, Zoho, custom)" },
+  { method: "PATCH", path: "/api/v1/integrations", desc: "Customer webhook + Slack URLs for extraction events" },
+  { method: "POST", path: "/api/v1/user-query", desc: "Define extraction query + JSON output schema (optional models)" },
+  { method: "POST", path: "/api/v1/mailboxes", desc: "Add multi-mailbox IMAP (encrypted at rest)" },
+  { method: "PUT", path: "/api/v1/mailbox/config", desc: "Legacy single-mailbox connect (still supported)" },
   { method: "POST", path: "/api/v1/mailbox/extract-emails", desc: "Fetch mail and run extraction pipeline" },
   { method: "GET", path: "/api/v1/user-query/current/results", desc: "Poll structured extraction results" },
 ];
@@ -15,17 +17,17 @@ export default function DevelopersPage() {
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
         <p className="section-label">Integrations</p>
-        <h1 className="mt-2 font-display text-3xl font-bold text-slate-950">Developer integration guide</h1>
-        <p className="mt-2 text-slate-600">
+        <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Developer integration guide</h1>
+        <p className="mt-2 text-ink-muted">
           Embed ExtractPilot in your backend, scripts, or automation — without using Swagger. This is the customer-facing
           reference for REST integration.
         </p>
       </div>
 
       <Panel title="Authentication">
-        <p className="text-sm text-slate-700">
-          When <code className="rounded bg-slate-100 px-1">REST_API_KEY</code> is set on the server, every{" "}
-          <code className="rounded bg-slate-100 px-1">/api/v1/*</code> request must include:
+        <p className="text-sm text-ink-muted">
+          When <code className="rounded bg-ink/5 px-1">REST_API_KEY</code> is set on the server, every{" "}
+          <code className="rounded bg-ink/5 px-1">/api/v1/*</code> request must include:
         </p>
         <pre className="code-block mt-4">{`Authorization: Bearer YOUR_API_KEY
 # or
@@ -92,13 +94,13 @@ X-API-Key: YOUR_API_KEY`}</pre>
         </p>
         <pre className="code-block mt-4">{`{
   "emailId": "...",
-  "subject": "Invoice #1042",
-  "sender": "billing@vendor.com",
+  "subject": "Load settlement — ref HL-20418",
+  "sender": "ap@harborlinefreight.com",
   "processingStatus": "completed",
-  "extracted": { "invoice_number": "1042", "total_amount": 1200 },
+  "extracted": { "document_ref": "HL-20418", "total_usd": 1840.5 },
   "source": {
     "rawContent": "Full email body text…",
-    "attachments": [{ "filename": "inv.pdf", "mimeType": "application/pdf", "status": "completed" }]
+    "attachments": [{ "filename": "settlement_march.pdf", "mimeType": "application/pdf", "status": "completed" }]
   }
 }`}</pre>
       </Panel>

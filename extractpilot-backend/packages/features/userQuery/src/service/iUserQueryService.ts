@@ -7,6 +7,9 @@ import type { IUserQueryRepo } from "../repo/iUserQueryRepo";
 export interface IUserQueryService {
   create(input: CreateUserQueryInput): Promise<DTO<UserQueryRow>>;
   getActive(): Promise<DTO<UserQueryRow | null>>;
+  byId(id: string): Promise<DTO<UserQueryRow | null>>;
+  list(input?: { limit?: number; offset?: number }): Promise<DTO<{ items: UserQueryRow[]; total: number }>>;
+  activate(id: string): Promise<DTO<UserQueryRow>>;
   listResults(
     userQueryId: string,
     input?: {

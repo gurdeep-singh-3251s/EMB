@@ -112,29 +112,34 @@ export function MailboxConnectStep({ onComplete }: { onComplete?: () => void }) 
       <Panel
         title="Connection status"
         action={
-          config ? <StatusBadge status={config.configured ? "completed" : "pending"} /> : null
+          <div className="flex items-center gap-2">
+            <a href="/dashboard/mailboxes" className="text-xs font-semibold text-rust hover:underline">
+              All mailboxes
+            </a>
+            {config ? <StatusBadge status={config.configured ? "completed" : "pending"} /> : null}
+          </div>
         }
       >
         {loadError ? <p className="text-sm text-rose-600">{loadError}</p> : null}
         {config ? (
           <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-500">Provider</dt>
+              <dt className="text-ink-muted">Provider</dt>
               <dd className="font-medium capitalize">{config.provider ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Server</dt>
+              <dt className="text-ink-muted">Server</dt>
               <dd className="font-medium">
                 {config.host}:{config.port}
               </dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-slate-500">Account</dt>
+              <dt className="text-ink-muted">Account</dt>
               <dd className="font-medium">{config.user ?? "Not configured"}</dd>
             </div>
           </dl>
         ) : (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-ink-muted">Loading…</p>
         )}
       </Panel>
 
@@ -148,15 +153,15 @@ export function MailboxConnectStep({ onComplete }: { onComplete?: () => void }) 
               className={`rounded-lg border px-3.5 py-2.5 text-left transition-all duration-200 ease-premium ${
                 presetId === preset.id
                   ? "border-blue-600 bg-blue-50 ring-2 ring-blue-500/20 scale-[1.01]"
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+                  : "border-ink/10 bg-paper hover:border-ink/20 hover:bg-paper-elevated active:scale-[0.99]"
               }`}
             >
               <p className="text-sm font-semibold">{preset.label}</p>
-              <p className="mt-1 font-mono text-xs text-slate-500">{preset.host || "Custom"}</p>
+              <p className="mt-1 font-mono text-xs text-ink-muted">{preset.host || "Custom"}</p>
             </button>
           ))}
         </div>
-        <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">{selectedPreset.help}</p>
+        <p className="mt-4 rounded-xl bg-paper-elevated px-4 py-3 text-sm text-ink-muted">{selectedPreset.help}</p>
       </Panel>
 
       <Panel title="Credentials">

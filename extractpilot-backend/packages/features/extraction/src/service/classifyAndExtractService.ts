@@ -46,9 +46,11 @@ export class ClassifyAndExtractService implements IClassifyAndExtractService {
       body,
     });
 
+    const model = input.userQuery.extractModel?.trim() || this.model;
     const raw = await this.openRouter.completeJson(prompt, {
       step: "classify-and-extract",
-      model: this.model,
+      model,
+      ownerUserId: input.ownerUserId,
     });
 
     const gateSchema = z.object({

@@ -1,28 +1,12 @@
 import type { RestUserQueryResultsData, RestHandlerDeps } from "@repo/types/restTypes";
-import { PLANS } from "@repo/config/plans";
 import { buildUserQueryResultsPayload } from "../helper/userQueryResults";
-import { getActivePlanId } from "../middleware/planLimits";
 import { BaseRestController } from "../helper/init";
 import { createUserQueryBodySchema, userQueryResultsQuerySchema } from "../swagger/schemas";
+import { UserQueryCreateHandler } from "./promptStudioRouter";
 
 class UserQueryHandler extends BaseRestController {
   async setUserQuery(req: Request): Promise<Response> {
-    const body = await this.readJson(req);
-    const parsed = createUserQueryBodySchema.safeParse(body);
-    if (!parsed.success) {
-      return this.validationError(parsed.error.message, parsed.error.flatten());
-    }
-    const planId = await getActivePlanId(this.deps.getDb(), this.deps.env);
-    const maxFields = PLANS[planId].limits.maxSchemaFields;
-    const fieldCount = Object.keys(parsed.data.outputSchema).length;
-    if (fieldCount > maxFields) {
-      return this.validationError(
-        `Your ${PLANS[planId].name} plan allows up to ${maxFields} schema fields (${fieldCount} provided).`,
-        null,
-      );
-    }
-    const result = await this.ctx.services.userQuery.create(parsed.data);
-    return this.fromDto(result, 201);
+    return new UserQueryCreateHandler(this.deps).createWithModels(req);
   }
 
   async getCurrentUserQuery(): Promise<Response> {
@@ -42,6 +26,14 @@ class UserQueryHandler extends BaseRestController {
   }
 
   async getUserQueryResults(userQueryId: string, url: URL): Promise<Response> {
+    const owned = await this.ctx.services.userQuery.byId(userQueryId);
+    if (!owned.success) {
+      return this.fromDto(owned);
+    }
+    if (owned.data === null) {
+      return this.notFound("User query not found");
+    }
+
     const query = userQueryResultsQuerySchema.safeParse({
       limit: url.searchParams.get("limit"),
       offset: url.searchParams.get("offset"),

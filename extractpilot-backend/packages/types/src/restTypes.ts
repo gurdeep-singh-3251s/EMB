@@ -52,6 +52,7 @@ export interface RestAppContext {
     userQuery: {
       create(input: CreateUserQueryInput): Promise<DTO<UserQueryRow>>;
       getActive(): Promise<DTO<UserQueryRow | null>>;
+      byId(id: string): Promise<DTO<UserQueryRow | null>>;
       listResults(
         userQueryId: string,
         input?: {
@@ -114,6 +115,8 @@ type RestHandlerDeps = {
   getContext: () => RestAppContext;
   getDb: () => Database;
   getEmailService: () => EmailService;
+  getTenantUserId: () => string | null;
+  runnerForTenant: (userId: string) => EmailService;
   getRedis: () => import("ioredis").Redis | null;
 };
 

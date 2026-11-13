@@ -13,6 +13,7 @@ export interface ClassifyEmailInput {
   rawContent: string;
   /** Filenames/types only — OCR runs after classify; used as relevance hints. */
   attachments: ClassifyEmailAttachmentHint[];
+  ownerUserId?: string | null;
 }
 
 export interface IClassificationService {

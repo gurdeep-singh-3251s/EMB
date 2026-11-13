@@ -27,7 +27,10 @@ import type {
 import { buildUserQueryResultsPayload, pollUserQueryResults } from "../helper/userQueryResults";
 import { checkExtractionAllowed, getActivePlanId } from "../middleware/planLimits";
 import { BaseRestController } from "../helper/init";
-import { getRuntimeImapCredentials, setRuntimeImapCredentials, clearRuntimeImapCredentials } from "../helper/runtimeImapConfig";
+import { clearRuntimeImapCredentials } from "../helper/runtimeImapConfig";
+import { getRequestTenantUserId } from "../requestContext";
+import { getActiveMailboxCredentials, upsertMailbox } from "../../tenant/mailboxRepo";
+import { secretsEncryptionReady } from "../../auth/secretBox";
 import { imapCredentialsBodySchema, imapFetchBodySchema } from "../swagger/schemas";
 import { ExtractionProgressPublisher } from "@repo/feature-queue";
 
@@ -63,8 +66,8 @@ class MailboxHandler extends BaseRestController {
     return this.success(data, null, 200);
   }
 
-  getConfig(): Response {
-    const creds = this.resolveImapCredentials();
+  async getConfig(): Promise<Response> {
+    const creds = await this.resolveImapCredentials();
     const data: RestMailboxConfigData = {
       configured: creds.source !== "none",
       provider: creds.source !== "none" ? creds.provider : null,
@@ -77,6 +80,17 @@ class MailboxHandler extends BaseRestController {
   }
 
   async putConfig(req: Request): Promise<Response> {
+    const userId = getRequestTenantUserId();
+    if (!userId) {
+      return Response.json({ success: false, message: "Sign in required", error: null }, { status: 401 });
+    }
+    if (!secretsEncryptionReady(this.deps.env)) {
+      return this.validationError(
+        "Set SECRETS_ENCRYPTION_KEY (32+ chars) to store mailbox passwords securely.",
+        null,
+      );
+    }
+
     const body = await this.readJson(req);
     const parsed = imapCredentialsBodySchema.safeParse(body);
     if (!parsed.success) {
@@ -109,7 +123,17 @@ class MailboxHandler extends BaseRestController {
       user: parsed.data.user,
       password: parsed.data.password,
     };
-    setRuntimeImapCredentials(credentials);
+    clearRuntimeImapCredentials();
+    await upsertMailbox(this.deps.getDb(), this.deps.env, userId, {
+      label: parsed.data.user,
+      provider: credentials.provider,
+      providerPreset: credentials.providerPreset,
+      host: credentials.host,
+      port: credentials.port,
+      imapUser: credentials.user,
+      password: credentials.password,
+      setActive: true,
+    });
 
     const data: RestMailboxConnectedData = {
       provider: credentials.provider,
@@ -123,6 +147,7 @@ class MailboxHandler extends BaseRestController {
 
   deleteConfig(): Response {
     clearRuntimeImapCredentials();
+    // Legacy in-memory disconnect; persisted mailboxes use DELETE /api/v1/mailboxes/:id
     const data: RestDisconnectedMailboxData = null;
     return this.success(data, "Disconnected", 200);
   }
@@ -144,10 +169,16 @@ class MailboxHandler extends BaseRestController {
       return this.validationError(parsed.error.message, parsed.error.flatten());
     }
 
-    const planId = await getActivePlanId(this.deps.getDb(), this.deps.env);
+    const userId = getRequestTenantUserId();
+    if (!userId) {
+      return Response.json({ success: false, message: "Sign in required", error: null }, { status: 401 });
+    }
+
+    const planId = await getActivePlanId(this.deps.getDb(), this.deps.env, userId);
     const plan = PLANS[planId];
     const limitCheck = await checkExtractionAllowed(this.deps.getDb(), planId, {
       unlimited: this.deps.env.betaUnlimitedQuota,
+      userId,
     });
     if (!limitCheck.ok) {
       return this.validationError(limitCheck.message, null);
@@ -157,7 +188,7 @@ class MailboxHandler extends BaseRestController {
       ? Math.min(parsed.data.waitTimeoutSeconds, plan.limits.maxWaitTimeoutSeconds)
       : parsed.data.waitTimeoutSeconds;
 
-    const overrides = this.buildFetchOverrides(
+    const overrides = await this.buildFetchOverrides(
       parsed.data.lookback,
       parsed.data.unreadOnly,
       parsed.data.markSeenOnEnqueue,
@@ -184,7 +215,7 @@ class MailboxHandler extends BaseRestController {
     const progress = this.progressPublisher();
     progress?.phase(userQueryId, "fetching");
 
-    const result = await this.deps.getEmailService().runner(overrides);
+    const result = await this.deps.runnerForTenant(userId).runner(overrides);
     if (!result.success) {
       return this.fromDto(result);
     }
@@ -262,14 +293,21 @@ class MailboxHandler extends BaseRestController {
     return body as Record<string, never>;
   }
 
-  private resolveImapCredentials(): ResolvedImapCredentials {
-    const runtime = getRuntimeImapCredentials();
-    if (runtime !== null) {
-      return {
-        ...runtime,
-        providerPreset: runtime.providerPreset ?? null,
-        source: "runtime",
-      };
+  private async resolveImapCredentials(): Promise<ResolvedImapCredentials> {
+    const tenantUserId = getRequestTenantUserId();
+    if (tenantUserId && secretsEncryptionReady(this.deps.env)) {
+      const stored = await getActiveMailboxCredentials(this.deps.getDb(), this.deps.env, tenantUserId);
+      if (stored) {
+        return {
+          provider: stored.provider,
+          providerPreset: stored.providerPreset,
+          host: stored.host,
+          port: stored.port,
+          user: stored.imapUser,
+          password: stored.password,
+          source: "runtime",
+        };
+      }
     }
     if (this.deps.env.imapGmail.user.length > 0 && this.deps.env.imapGmail.password.length > 0) {
       const host = this.deps.env.imapGmail.host;
@@ -294,12 +332,12 @@ class MailboxHandler extends BaseRestController {
     };
   }
 
-  private buildFetchOverrides(
+  private async buildFetchOverrides(
     lookback: EmailLookbackKey,
     unreadOnly: boolean,
     markSeenOnEnqueue: boolean | undefined,
-  ): MailProviderOverrides | null {
-    const creds = this.resolveImapCredentials();
+  ): Promise<MailProviderOverrides | null> {
+    const creds = await this.resolveImapCredentials();
     if (creds.source === "none") {
       return null;
     }

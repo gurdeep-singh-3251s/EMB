@@ -1,9 +1,20 @@
-import { Queue, type ConnectionOptions } from "bullmq";
+import { Queue, type ConnectionOptions, type JobsOptions } from "bullmq";
 import type { Redis } from "ioredis";
+import { loadEnv } from "@repo/config";
 import { EMAIL_PROCESSING_JOB, EMAIL_PROCESSING_QUEUE } from "@repo/feature-queue";
 import type { EmailProcessingJob } from "@repo/types/email";
 import { createHash } from "node:crypto";
 import { DTO } from "@repo/dto";
+
+function defaultJobOptions(): JobsOptions {
+  const env = loadEnv();
+  return {
+    attempts: env.queue.jobAttempts,
+    backoff: { type: "exponential", delay: env.queue.backoffMs },
+    removeOnComplete: { count: env.queue.removeOnCompleteCount },
+    removeOnFail: { count: env.queue.removeOnFailCount },
+  };
+}
 
 export function stableJobId(payload: EmailProcessingJob): string {
   const raw = payload.emailUuid;
@@ -14,6 +25,7 @@ export function stableJobId(payload: EmailProcessingJob): string {
 export function createEmailProcessingQueue(connection: Redis): Queue<EmailProcessingJob> {
   return new Queue<EmailProcessingJob>(EMAIL_PROCESSING_QUEUE, {
     connection: connection as ConnectionOptions,
+    defaultJobOptions: defaultJobOptions(),
   });
 }
 
@@ -37,11 +49,7 @@ export async function enqueueEmailJob(
     // Idempotency: avoid re-processing same provider+messageId on repeated cron runs.
     // BullMQ/Redis keys are happier with a short safe id (no <>/: etc).
     jobId,
-    attempts: 3,
-    backoff: { type: "exponential", delay: 5000 },
-    removeOnComplete: true,
-    // Keep Redis clean; failures are already persisted to DB (failed_jobs table).
-    removeOnFail: true,
+    ...defaultJobOptions(),
   });
 }
 
@@ -59,10 +67,7 @@ export async function enqueueEmailJobsBulk(
       data: payload,
       opts: {
         jobId: stableJobId(payload),
-        attempts: 3,
-        backoff: { type: "exponential", delay: 5000 },
-        removeOnComplete: true,
-        removeOnFail: true,
+        ...defaultJobOptions(),
       },
     })),
   );

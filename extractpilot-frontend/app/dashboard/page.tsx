@@ -7,6 +7,7 @@ import { emailApiProvider } from "@/apiProvider/email/emailApiProvider";
 import { Panel } from "@/components/ui/Panel";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 
 export default function DashboardOverviewPage() {
   const [mailbox, setMailbox] = useState<{ configured: boolean; user: string | null } | null>(null);
@@ -32,21 +33,28 @@ export default function DashboardOverviewPage() {
 
   const pipelineStep = !query ? 1 : !mailbox?.configured ? 2 : 3;
   const steps = [
-    { done: !!query, label: "Define extraction schema", step: 1 },
-    { done: mailbox?.configured, label: "Connect mailbox (any IMAP)", step: 2 },
-    { done: (stats?.completed ?? 0) > 0, label: "Review extraction results", step: 3 },
+    { done: !!query, label: "Write your extraction schema", step: 1 },
+    { done: mailbox?.configured, label: "Connect IMAP mailbox", step: 2 },
+    { done: (stats?.completed ?? 0) > 0, label: "Confirm first results", step: 3 },
+  ];
+
+  const onboarding = [
+    { done: !!query, label: "Describe what to extract (Prompt studio)", href: "/dashboard/prompts" },
+    { done: Boolean(mailbox?.configured), label: "Connect your work inbox", href: "/dashboard/mailboxes" },
+    { done: (stats?.completed ?? 0) > 0, label: "Run extraction and check results", href: "/dashboard/workflow?step=3" },
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3 animate-fade-in-up">
+    <div className="space-y-6">
+      <div data-reveal>
+        <OnboardingChecklist steps={onboarding} />
+      </div>
+      <div data-reveal className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="section-label">Overview</p>
-          <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-slate-950 lg:text-3xl">
-            Operations dashboard
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-slate-600">
-            One pipeline for setup, mailbox connection, and extraction — no duplicate flows.
+          <p className="section-label">Today</p>
+          <h1 className="page-title !mt-1.5">Your inbox at a glance</h1>
+          <p className="page-lede">
+            Counts below are only from your workspace. New here? Finish the checklist — it takes about 15 minutes.
           </p>
         </div>
         <LinkButton href={`/dashboard/workflow?step=${pipelineStep}`} variant="accent">
@@ -54,37 +62,30 @@ export default function DashboardOverviewPage() {
         </LinkButton>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-reveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Total emails", stats?.total ?? "—", "stagger-1"],
-          ["Completed", stats?.completed ?? "—", "stagger-2"],
-          ["Failed", stats?.failed ?? "—", "stagger-3"],
-          ["Query results", recent, "stagger-4"],
-        ].map(([label, value, stagger]) => (
-          <div
-            key={String(label)}
-            className={`glass-panel-interactive p-4 animate-fade-in-up ${stagger}`}
-          >
-            <p className="text-xs text-slate-500">{label}</p>
-            <p className="metric-value mt-1">{value}</p>
+          ["Ingested", stats?.total ?? "—"],
+          ["Extracted", stats?.completed ?? "—"],
+          ["Needs attention", stats?.failed ?? "—"],
+          ["Rows in results", recent],
+        ].map(([label, value]) => (
+          <div key={String(label)} className="ledger-panel-interactive p-4">
+            <p className="section-label">{label}</p>
+            <p className="metric-value mt-1.5">{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
-          title="Pipeline progress"
-          description="All steps live in one guided workflow"
-          className="animate-fade-in-up stagger-3"
-        >
+      <div data-reveal className="grid gap-4 lg:grid-cols-2">
+        <Panel title="Checklist" description="Same three steps as the pipeline — no duplicate wizards">
           <ul className="space-y-2">
             {steps.map((step) => (
               <li key={step.label}>
                 <Link
                   href={`/dashboard/workflow?step=${step.step}`}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-2.5 transition-all duration-200 ease-premium hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+                  className="flex items-center justify-between rounded-lg border border-ink/10 px-3.5 py-2.5 transition hover:border-ink/20 hover:bg-paper-elevated"
                 >
-                  <span className="text-sm font-medium text-slate-900">{step.label}</span>
+                  <span className="text-sm font-medium text-ink">{step.label}</span>
                   <StatusBadge status={step.done ? "completed" : "pending"} />
                 </Link>
               </li>
@@ -92,28 +93,28 @@ export default function DashboardOverviewPage() {
           </ul>
         </Panel>
 
-        <Panel title="Workspace" className="animate-fade-in-up stagger-4">
+        <Panel title="Workspace snapshot">
           {query ? (
-            <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
-              <span className="font-semibold text-slate-900">Active query:</span> {query}
+            <p className="rounded-lg border border-ink/10 bg-paper-elevated p-3 text-sm text-ink-muted">
+              <span className="font-semibold text-ink">Active schema intent:</span> {query}
               {query.length >= 80 ? "…" : ""}
             </p>
           ) : (
-            <p className="text-sm text-slate-600">No active extraction query yet.</p>
+            <p className="text-sm text-ink-muted">No schema saved yet — start with step 1 in the pipeline.</p>
           )}
           {mailbox?.configured ? (
-            <p className="mt-2 text-sm text-slate-600">
-              <span className="font-semibold text-slate-900">Mailbox:</span> {mailbox.user}
+            <p className="mt-2 text-sm text-ink-muted">
+              <span className="font-semibold text-ink">Mailbox:</span> {mailbox.user}
             </p>
           ) : (
-            <p className="mt-2 text-sm text-slate-600">Mailbox not connected.</p>
+            <p className="mt-2 text-sm text-ink-muted">No mailbox connected.</p>
           )}
           <div className="mt-4 flex flex-wrap gap-2">
             <LinkButton href="/dashboard/results" variant="secondary" size="sm">
-              View results
+              Results table
             </LinkButton>
             <LinkButton href="/dashboard/developers" variant="secondary" size="sm">
-              Integration guide
+              API guide
             </LinkButton>
           </div>
         </Panel>

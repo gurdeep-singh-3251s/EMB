@@ -8,6 +8,7 @@ export interface FinalExtractInput {
   sender: string;
   rawContent: string;
   attachmentRows: WorkerAttachmentRow[];
+  ownerUserId?: string | null;
 }
 
 export interface IFinalExtractionService {

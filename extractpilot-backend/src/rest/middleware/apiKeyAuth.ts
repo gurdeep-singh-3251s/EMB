@@ -35,7 +35,7 @@ export async function validateRestApiKey(req: Request, env: Env): Promise<Respon
     {
       success: false,
       message: oauthEnabled
-        ? "Unauthorized — sign in or provide a valid API key via Authorization: Bearer"
+        ? "Unauthorized — sign in with Google (JWT Bearer) or use X-API-Key if integrator access is enabled"
         : "Unauthorized — provide a valid API key via Authorization: Bearer or X-API-Key",
       error: null,
     },

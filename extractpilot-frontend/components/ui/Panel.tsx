@@ -14,16 +14,12 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`glass-panel p-4 sm:p-5 ${className}`}>
+    <section className={`saas-card p-6 sm:p-7 ${className}`}>
       {(title || action) && (
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            {title ? (
-              <h2 className="font-display text-base font-semibold text-slate-950">{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="mt-0.5 text-sm text-slate-600">{description}</p>
-            ) : null}
+            {title ? <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2> : null}
+            {description ? <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">{description}</p> : null}
           </div>
           {action}
         </div>

@@ -11,6 +11,8 @@ import {
   schemaToRows,
   type SchemaRow,
 } from "@/components/extraction/SchemaBuilder";
+import { PromptTemplatePicker } from "@/components/extraction/PromptTemplatePicker";
+import Link from "next/link";
 
 const TEMPLATE_SCHEMA: Record<string, FieldSpec> = {
   customer_name: { type: "string", nullable: true, description: "Customer or company name" },
@@ -82,7 +84,24 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
 
   return (
     <div className="space-y-4">
-      <Panel title="Business query" description="Natural language instructions for the extraction pipeline">
+      <Panel
+        title="Business query"
+        description="Natural language instructions for the extraction pipeline"
+        action={
+          <Link href="/dashboard/prompts" className="text-xs font-semibold text-rust hover:underline">
+            Open prompt studio →
+          </Link>
+        }
+      >
+        <PromptTemplatePicker
+          onApply={({ userQuery, outputSchema }) => {
+            setQuery(userQuery);
+            setRows(schemaToRows(outputSchema));
+            setLoadedFromServer(false);
+            setMessage(null);
+            setError(null);
+          }}
+        />
         <textarea
           className="input-field min-h-32 resize-y"
           value={query}
@@ -95,11 +114,11 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
         description="Fields the model must return (top-level JSON keys)"
       >
         {loading ? (
-          <p className="text-sm text-slate-500">Loading your active schema…</p>
+          <p className="text-sm text-ink-muted">Loading your active schema…</p>
         ) : (
           <>
             {loadedFromServer ? (
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm text-blue-950">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rust/20 bg-rust/5 px-4 py-3 text-sm text-ink">
                 <span>
                   Loaded active query ({rows.length} field{rows.length === 1 ? "" : "s"}) from your workspace.
                 </span>
@@ -117,8 +136,8 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
         <Button variant="accent" onClick={save} disabled={saving || loading}>
           {saving ? "Saving…" : "Save & activate query"}
         </Button>
-        {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
-        {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
+        {message ? <p className="text-sm font-medium text-moss">{message}</p> : null}
+        {error ? <p className="text-sm font-medium text-rust">{error}</p> : null}
       </div>
     </div>
   );

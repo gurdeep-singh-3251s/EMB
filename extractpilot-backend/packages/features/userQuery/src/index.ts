@@ -1,5 +1,6 @@
 export { createUserQueryRepo, createUserQueryService } from "./factory";
 export { createUserQuerySchema, wrapOutputSchema } from "./schema/outputSchema";
+export { validateOperatorQuery } from "./schema/operatorQueryValidation";
 export { RESULTS_TIME_RANGE_OPTIONS, resolveResultsSince } from "./resultsTimeRange";
 export type { ResultsTimeRangeKey } from "./resultsTimeRange";
 export type { UserQueryResultsPage } from "./repo/iUserQueryRepo";

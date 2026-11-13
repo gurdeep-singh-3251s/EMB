@@ -2,6 +2,7 @@ import type { Env } from "@repo/config";
 import { resolveApiPublicUrl } from "@repo/config";
 import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { authEnabled, extractBearerToken, signAccessToken, verifyAccessToken } from "../../auth/jwt";
+import { signOAuthState, verifyOAuthState } from "../../auth/oauthState";
 import { upsertGoogleUser } from "../../auth/userRepo";
 import { BaseRestController } from "../helper/init";
 
@@ -14,12 +15,13 @@ function oauthRedirectUri(req: Request, env: Env): string {
 }
 
 class AuthHandler extends BaseRestController {
-  googleStart(req: Request): Response {
+  async googleStart(req: Request): Promise<Response> {
     if (!authEnabled(this.deps.env)) {
       return this.validationError("Google OAuth is not configured on this server", null);
     }
 
     const next = new URL(req.url).searchParams.get("state") ?? "/dashboard";
+    const signedState = await signOAuthState(next, this.deps.env);
     const params = new URLSearchParams({
       client_id: this.deps.env.auth.googleClientId,
       redirect_uri: oauthRedirectUri(req, this.deps.env),
@@ -27,7 +29,7 @@ class AuthHandler extends BaseRestController {
       scope: "openid email profile",
       access_type: "online",
       prompt: "select_account",
-      state: next,
+      state: signedState,
     });
 
     return Response.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`, 302);
@@ -95,8 +97,7 @@ class AuthHandler extends BaseRestController {
     });
 
     const jwt = await signAccessToken(user, this.deps.env);
-    const next = url.searchParams.get("state") ?? "/dashboard";
-    const safeNext = next.startsWith("/") ? next : "/dashboard";
+    const safeNext = await verifyOAuthState(url.searchParams.get("state"), this.deps.env);
     const redirect = `${this.deps.env.clientOrigin}/auth/callback?token=${encodeURIComponent(jwt)}&state=${encodeURIComponent(safeNext)}`;
     return Response.redirect(redirect, 302);
   }

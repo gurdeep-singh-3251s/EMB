@@ -11,12 +11,18 @@ export interface ClassificationResult {
 export interface CreateUserQueryInput {
   userQuery: string;
   outputSchema: Record<string, unknown>;
+  name?: string | null;
+  classifyModel?: string | null;
+  extractModel?: string | null;
 }
 
 export interface UserQueryRow {
   id: string;
+  name: string | null;
   userQuery: string;
   outputSchema: Record<string, unknown>;
+  classifyModel: string | null;
+  extractModel: string | null;
   status: UserQueryStatus;
   createdAt: Date;
 }

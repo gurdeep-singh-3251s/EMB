@@ -5,23 +5,36 @@ import type { PlanId } from "@repo/config/plans";
 import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { BaseRestController } from "../helper/init";
 import { getActivePlanId, getBillingRow, upsertWorkspaceBilling } from "../middleware/planLimits";
+import { getRequestTenantUserId } from "../requestContext";
 
 function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey);
 }
 
-function resolveStripePriceId(env: RestHandlerDeps["env"], planId: PlanId): string | null {
+const PAID_PLAN_IDS = ["standard", "premium", "enterprise"] as const;
+type PaidPlanId = (typeof PAID_PLAN_IDS)[number];
+
+function resolveStripePriceId(env: RestHandlerDeps["env"], planId: PaidPlanId): string | null {
   if (planId === "standard") return env.stripe.priceStandard || null;
   if (planId === "premium") return env.stripe.pricePremium || null;
+  if (planId === "enterprise") return env.stripe.priceEnterprise || null;
   return null;
 }
 
 class BillingHandler extends BaseRestController {
+  private requireTenantUserId(): string | Response {
+    const userId = getRequestTenantUserId();
+    if (!userId) {
+      return Response.json(
+        { success: false, message: "Sign in required to manage billing.", error: null },
+        { status: 401 },
+      );
+    }
+    return userId;
+  }
+
   private billingDisabledResponse(): Response {
-    return this.validationError(
-      `Billing is disabled during closed beta. ${BETA_ACCESS_NOTICE}`,
-      null,
-    );
+    return this.validationError(`Billing is disabled on this environment. ${BETA_ACCESS_NOTICE}`, null);
   }
 
   private stripe(): Stripe | null {
@@ -40,7 +53,7 @@ class BillingHandler extends BaseRestController {
     }
 
     const body = await this.readJson(req);
-    const parsed = z.object({ planId: z.enum(["standard", "premium"]) }).safeParse(body);
+    const parsed = z.object({ planId: z.enum(PAID_PLAN_IDS) }).safeParse(body);
     if (!parsed.success) {
       return this.validationError("planId must be standard or premium", parsed.error.flatten());
     }
@@ -53,7 +66,10 @@ class BillingHandler extends BaseRestController {
       );
     }
 
-    const billing = await getBillingRow(this.deps.getDb());
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const billing = await getBillingRow(this.deps.getDb(), tenant);
     const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -62,8 +78,53 @@ class BillingHandler extends BaseRestController {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/dashboard/pricing?checkout=success`,
       cancel_url: `${origin}/dashboard/pricing?checkout=canceled`,
-      metadata: { planId: parsed.data.planId },
-      subscription_data: { metadata: { planId: parsed.data.planId } },
+      metadata: { planId: parsed.data.planId, userId: tenant },
+      subscription_data: { metadata: { planId: parsed.data.planId, userId: tenant } },
+    };
+
+    const coupon = this.deps.env.stripe.firstMonthCoupon;
+    if (coupon) {
+      sessionParams.discounts = [{ coupon }];
+    }
+
+    if (billing?.stripeCustomerId) {
+      sessionParams.customer = billing.stripeCustomerId;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    return this.success({ url: session.url, sessionId: session.id }, null, 200);
+  }
+
+  async createSetupCheckout(req: Request): Promise<Response> {
+    if (!this.deps.env.enableBilling) {
+      return this.billingDisabledResponse();
+    }
+    const stripe = this.stripe();
+    if (!stripe) {
+      return this.validationError("Stripe is not configured — set STRIPE_SECRET_KEY and price IDs.", null);
+    }
+
+    const priceId = this.deps.env.stripe.priceSetup;
+    if (!priceId) {
+      return this.validationError(
+        "Stripe setup price not configured — set STRIPE_PRICE_SETUP for the one-time onboarding product.",
+        null,
+      );
+    }
+
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const billing = await getBillingRow(this.deps.getDb(), tenant);
+    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/dashboard/pricing?checkout=setup-success`,
+      cancel_url: `${origin}/pricing?checkout=setup-canceled`,
+      metadata: { purchaseType: "setup-onboarding", userId: tenant },
     };
 
     if (billing?.stripeCustomerId) {
@@ -83,7 +144,10 @@ class BillingHandler extends BaseRestController {
       return this.validationError("Stripe is not configured.", null);
     }
 
-    const billing = await getBillingRow(this.deps.getDb());
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const billing = await getBillingRow(this.deps.getDb(), tenant);
     if (!billing?.stripeCustomerId) {
       return this.validationError("No active Stripe customer — subscribe to a paid plan first.", null);
     }
@@ -124,8 +188,12 @@ class BillingHandler extends BaseRestController {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const planId = session.metadata?.planId as PlanId;
-        if (planId === "standard" || planId === "premium") {
-          await upsertWorkspaceBilling(db, {
+        const userId = session.metadata?.userId;
+        if (
+          userId &&
+          (planId === "standard" || planId === "premium" || planId === "enterprise")
+        ) {
+          await upsertWorkspaceBilling(db, userId, {
             planId,
             stripeCustomerId: typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
             stripeSubscriptionId:
@@ -138,9 +206,13 @@ class BillingHandler extends BaseRestController {
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         const planId = sub.metadata?.planId as PlanId | undefined;
+        const userId = sub.metadata?.userId;
         const active = sub.status === "active" || sub.status === "trialing";
-        if (planId === "standard" || planId === "premium") {
-          await upsertWorkspaceBilling(db, {
+        if (
+          userId &&
+          (planId === "standard" || planId === "premium" || planId === "enterprise")
+        ) {
+          await upsertWorkspaceBilling(db, userId, {
             planId: active ? planId : "free",
             stripeCustomerId: typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null,
             stripeSubscriptionId: sub.id,
@@ -151,12 +223,15 @@ class BillingHandler extends BaseRestController {
       }
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        await upsertWorkspaceBilling(db, {
-          planId: "free",
-          stripeCustomerId: typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null,
-          stripeSubscriptionId: null,
-          subscriptionStatus: "canceled",
-        });
+        const userId = sub.metadata?.userId;
+        if (userId) {
+          await upsertWorkspaceBilling(db, userId, {
+            planId: "free",
+            stripeCustomerId: typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null,
+            stripeSubscriptionId: null,
+            subscriptionStatus: "canceled",
+          });
+        }
         break;
       }
       default:
@@ -167,8 +242,11 @@ class BillingHandler extends BaseRestController {
   }
 
   async status(): Promise<Response> {
-    const planId = await getActivePlanId(this.deps.getDb(), this.deps.env);
-    const billing = await getBillingRow(this.deps.getDb());
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const planId = await getActivePlanId(this.deps.getDb(), this.deps.env, tenant);
+    const billing = await getBillingRow(this.deps.getDb(), tenant);
 
     return this.success(
       {
@@ -193,6 +271,9 @@ async function handleBillingRouter(req: Request, deps: RestHandlerDeps): Promise
   }
   if (path === "/api/v1/billing/checkout" && req.method === "POST") {
     return handler.createCheckout(req);
+  }
+  if (path === "/api/v1/billing/checkout-setup" && req.method === "POST") {
+    return handler.createSetupCheckout(req);
   }
   if (path === "/api/v1/billing/portal" && req.method === "POST") {
     return handler.createPortal();

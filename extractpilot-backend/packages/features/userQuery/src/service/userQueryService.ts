@@ -21,6 +21,24 @@ export class UserQueryService implements IUserQueryService {
     return DTO.Success(await this.deps.repo.getActive());
   }
 
+  async byId(id: string): Promise<DTO<UserQueryRow | null>> {
+    return DTO.Success(await this.deps.repo.byId(id));
+  }
+
+  async list(input?: { limit?: number; offset?: number }): Promise<DTO<{ items: UserQueryRow[]; total: number }>> {
+    const limit = input?.limit ?? 30;
+    const offset = input?.offset ?? 0;
+    return DTO.Success(await this.deps.repo.listRecent(limit, offset));
+  }
+
+  async activate(id: string): Promise<DTO<UserQueryRow>> {
+    const row = await this.deps.repo.activateById(id);
+    if (!row) {
+      return DTO.HandledError("Prompt not found", null);
+    }
+    return DTO.Success(row);
+  }
+
   async listResults(
     userQueryId: string,
     input?: {

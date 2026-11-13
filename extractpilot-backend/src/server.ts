@@ -11,12 +11,16 @@ import { openApiSpec } from "./rest/swagger/openapiSpec";
 import { swaggerUiHtml } from "./rest/swagger/swaggerUi";
 import type { RestHandlerDeps } from "@repo/types/restTypes";
 import type { TrpcContext } from "./trpc/context";
+import { createAppContext } from "./bootstrap/factory";
+import { getRequestTenantUserId } from "./rest/requestContext";
+import type { EmailService } from "./gurdeep-cron/email-provider/service/EmailService";
 
 type FetchHandler = (req: Request) => Response | Promise<Response>;
 
 export type ApiServerOptions = {
-  rest?: Omit<RestHandlerDeps, "env" | "getContext" | "getDb" | "getRedis">;
+  rest?: Omit<RestHandlerDeps, "env" | "getContext" | "getDb" | "getRedis" | "getTenantUserId" | "runnerForTenant">;
   redis?: Redis;
+  runnerForTenant?: (userId: string) => EmailService;
 };
 
 export class ApiServer {
@@ -35,9 +39,18 @@ export class ApiServer {
       options?.rest != null
         ? {
             env: this.env,
-            getContext: () => getContext(),
+            getContext: () => {
+              const tenantUserId = getRequestTenantUserId();
+              if (tenantUserId) {
+                return createAppContext(this.env, tenantUserId);
+              }
+              return getContext();
+            },
             getDb: () => getContext().db,
             getEmailService: options.rest.getEmailService,
+            getTenantUserId: () => getRequestTenantUserId(),
+            runnerForTenant: (userId: string) =>
+              options.runnerForTenant?.(userId) ?? options.rest!.getEmailService(),
             getRedis: () => this.redis,
           }
         : null;

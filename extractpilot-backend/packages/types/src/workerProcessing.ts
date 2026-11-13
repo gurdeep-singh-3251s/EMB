@@ -39,6 +39,7 @@ export type WorkerEmailDetail = {
 export type ProcessingContext = {
   trace: JobTrace;
   emailUuid: string;
+  ownerUserId: string | null;
   emailRow: WorkerEmailDetail;
   attachmentRows: WorkerAttachmentRow[];
   userQuery: UserQueryRow | null;

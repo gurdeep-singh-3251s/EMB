@@ -37,6 +37,8 @@ export interface IUserQueryRepo {
   deactivateAllActive(): Promise<void>;
   getActive(): Promise<UserQueryRow | null>;
   byId(id: string): Promise<UserQueryRow | null>;
+  listRecent(limit: number, offset: number): Promise<{ items: UserQueryRow[]; total: number }>;
+  activateById(id: string): Promise<UserQueryRow | null>;
   listResults(
     userQueryId: string,
     limit: number,
@@ -45,4 +47,4 @@ export interface IUserQueryRepo {
   ): Promise<UserQueryResultsList>;
 }
 
-export type UserQueryRepoDeps = { db: Database };
+export type UserQueryRepoDeps = { db: Database; ownerUserId?: string | null };

@@ -19,9 +19,20 @@ abstract class BaseRestController {
   }
 
   protected async readJson(req: Request): Promise<unknown> {
+    const max = this.deps.env.restBodyMaxBytes ?? 1_048_576;
+    const len = Number(req.headers.get("content-length") ?? "0");
+    if (Number.isFinite(len) && len > max) {
+      throw new Error(`Request body too large (max ${max} bytes)`);
+    }
     try {
-      return await req.json();
-    } catch {
+      const text = await req.text();
+      if (text.length > max) {
+        throw new Error(`Request body too large (max ${max} bytes)`);
+      }
+      if (!text.trim()) return null;
+      return JSON.parse(text) as unknown;
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("too large")) throw e;
       return null;
     }
   }

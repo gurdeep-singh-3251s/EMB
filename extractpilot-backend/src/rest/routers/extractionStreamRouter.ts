@@ -39,6 +39,14 @@ class ExtractionStreamHandler extends BaseRestController {
       userQueryId = active.data.id;
     }
 
+    const owned = await this.ctx.services.userQuery.byId(userQueryId);
+    if (!owned.success) {
+      return this.fromDto(owned);
+    }
+    if (owned.data === null) {
+      return this.notFound("User query not found");
+    }
+
     let imapFetched = 0;
     let enqueued = 0;
     let closed = false;

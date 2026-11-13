@@ -6,7 +6,9 @@
   "exports": {
     ".": "./src/env.ts",
     "./paths": "./src/paths.ts",
-    "./plans": "./src/plans.ts"
+    "./plans": "./src/plans.ts",
+    "./promptTemplates": "./src/promptTemplates.ts",
+    "./llmModels": "./src/llmModels.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

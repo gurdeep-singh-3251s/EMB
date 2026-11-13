@@ -21,6 +21,15 @@ export function resolveAttachmentsRoot(configured: string, startDir?: string): s
 }
 
 export function resolveAttachmentLocalPath(localPath: string, attachmentsRoot: string): string {
-  if (localPath.startsWith("/") || /^[A-Za-z]:\\/.test(localPath)) return localPath;
-  return resolve(attachmentsRoot, localPath);
+  const root = resolve(attachmentsRoot);
+  const target = localPath.startsWith("/") || /^[A-Za-z]:\\/.test(localPath)
+    ? resolve(localPath)
+    : resolve(root, localPath);
+
+  const normalizedRoot = root.endsWith("/") ? root : `${root}/`;
+  const normalizedTarget = resolve(target);
+  if (!normalizedTarget.startsWith(normalizedRoot) && normalizedTarget !== resolve(root)) {
+    throw new Error("Attachment path escapes storage root");
+  }
+  return normalizedTarget;
 }

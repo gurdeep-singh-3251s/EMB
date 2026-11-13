@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { TrpcContext } from "./context";
-import { checkRateLimit } from "../rest/middleware/rateLimit";
+import { checkRateLimitLegacy } from "../rest/middleware/rateLimit";
 import { getActivePlanId } from "../rest/middleware/planLimits";
 
 const t = initTRPC.context<TrpcContext>().create();
@@ -22,7 +22,7 @@ const requireAuth = t.middleware(({ ctx, next }) => {
 const rateLimit = t.middleware(async ({ ctx, next, path }) => {
   if (!ctx.redis) return next();
   const planId = await getActivePlanId(ctx.db, ctx.env);
-  const rl = await checkRateLimit(ctx.redis, planId, "trpc", path);
+  const rl = await checkRateLimitLegacy(ctx.redis, planId, "trpc", path);
   if (rl.limited) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",

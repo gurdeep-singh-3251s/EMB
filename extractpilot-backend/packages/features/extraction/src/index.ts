@@ -1,6 +1,7 @@
 export { createExtractionServices } from "./factory";
 export type { ExtractionServices, ExtractionServicesConfig } from "./factory";
-export { OpenRouterService } from "./service/openrouterService";
+export { OpenRouterService, bindLlmUsageSink } from "./service/openrouterService";
+export type { LlmCallMeta, LlmUsageSink } from "./service/openrouterService";
 export type { OpenRouterConfig } from "./service/openrouterService";
 export type { IClassificationService } from "./service/iClassificationService";
 export type {

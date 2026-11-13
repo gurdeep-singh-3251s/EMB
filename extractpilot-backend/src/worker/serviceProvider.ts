@@ -64,8 +64,8 @@ class ServiceProvider {
       new PersistSkippedStep(this.emailService),
       new ParseAttachmentsStep(this.extraction.documentParse, this.attachmentRepo),
       new FinalExtractStep(this.extraction.finalExtract),
-      new PersistResultStep(this.emailService),
-      new FailureHandlerStep(this.emailService, this.failedJobRepo),
+      new PersistResultStep(this.emailService, db),
+      new FailureHandlerStep(this.emailService, this.failedJobRepo, db),
     ));
   }
 }

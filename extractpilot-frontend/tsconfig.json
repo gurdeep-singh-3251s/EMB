@@ -32,6 +32,9 @@
       "@repo/config/plans": [
         "./packages/config/src/plans.ts"
       ],
+      "@repo/config/promptTemplates": [
+        "./packages/config/src/promptTemplates.ts"
+      ],
       "@repo/types/*": [
         "./packages/types/src/*"
       ],

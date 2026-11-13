@@ -22,9 +22,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@repo/config": "file:./packages/config",
-    "@repo/db": "file:./packages/db",
-    "@repo/dto": "file:./packages/dto"
+    "@repo/config": "file:../config",
+    "@repo/db": "file:../db",
+    "@repo/dto": "file:../dto"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

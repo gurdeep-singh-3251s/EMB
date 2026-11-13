@@ -43,7 +43,12 @@ export class ClassificationService implements IClassificationService {
       body,
       attachments: input.attachments,
     });
-    const raw = await this.openRouter.completeJson(prompt, { step: "classify", model: this.model });
+    const model = input.userQuery.classifyModel?.trim() || this.model;
+    const raw = await this.openRouter.completeJson(prompt, {
+      step: "classify",
+      model,
+      ownerUserId: input.ownerUserId,
+    });
     const parsed = classificationSchema.parse(this.safeParseJson(raw));
 
     const likelyFields = (parsed.likelyFields ?? []).filter((k) => allowedKeys.has(k));

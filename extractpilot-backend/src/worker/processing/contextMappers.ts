@@ -47,6 +47,7 @@ export function buildProcessingContext(
   const ctx: ProcessingContext = {
     trace: input.trace,
     emailUuid: input.emailUuid,
+    ownerUserId: emailRow.ownerUserId ?? null,
     emailRow: toWorkerEmailDetail(emailRow),
     attachmentRows: attachmentRows.map(toAttachmentRow),
     userQuery,

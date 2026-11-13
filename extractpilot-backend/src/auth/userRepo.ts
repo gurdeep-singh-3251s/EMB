@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { Database } from "@repo/db";
-import { users } from "@repo/db/schema";
+import { users, workspaceBilling } from "@repo/db/schema";
 import type { AuthUser } from "./jwt";
 
 export type GoogleProfile = {
@@ -25,6 +25,7 @@ export async function upsertGoogleUser(db: Database, profile: GoogleProfile): Pr
       })
       .where(eq(users.id, existing.id))
       .returning();
+    await ensureUserBillingRow(db, updated.id);
     return mapUser(updated);
   }
 
@@ -40,6 +41,7 @@ export async function upsertGoogleUser(db: Database, profile: GoogleProfile): Pr
       })
       .where(eq(users.id, byEmail.id))
       .returning();
+    await ensureUserBillingRow(db, updated.id);
     return mapUser(updated);
   }
 
@@ -53,7 +55,18 @@ export async function upsertGoogleUser(db: Database, profile: GoogleProfile): Pr
       lastLoginAt: now,
     })
     .returning();
+  await ensureUserBillingRow(db, created.id);
   return mapUser(created);
+}
+
+async function ensureUserBillingRow(db: Database, userId: string): Promise<void> {
+  const [row] = await db.select().from(workspaceBilling).where(eq(workspaceBilling.id, userId)).limit(1);
+  if (row) return;
+  await db.insert(workspaceBilling).values({
+    id: userId,
+    planId: "free",
+    subscriptionStatus: "none",
+  });
 }
 
 export async function findUserById(db: Database, id: string): Promise<AuthUser | null> {

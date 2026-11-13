@@ -128,7 +128,7 @@ export function RunExtractionStep() {
       <Panel title="Fetch settings">
         <div className="grid gap-3">
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Lookback window</span>
+            <span className="text-sm font-medium text-ink">Lookback window</span>
             <select
               className="input-field mt-2"
               value={lookback}
@@ -146,7 +146,7 @@ export function RunExtractionStep() {
               )}
             </select>
           </label>
-          <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 transition-colors hover:border-slate-300">
+          <label className="flex items-center gap-2.5 rounded-lg border border-ink/10 bg-paper-elevated px-3.5 py-2.5 transition-colors hover:border-ink/20">
             <input
               type="checkbox"
               checked={unreadOnly}
@@ -169,10 +169,10 @@ export function RunExtractionStep() {
       {running ? (
         <Panel title="Extraction in progress">
           <div className="flex items-start gap-4">
-            <span className="mt-0.5 inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
+            <span className="mt-0.5 inline-block h-5 w-5 animate-spin rounded-full border-2 border-ink/20 border-t-rust" />
             <div>
-              <p className="text-sm font-medium text-slate-900">{statusMessage(status)}</p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="text-sm font-medium text-ink">{statusMessage(status)}</p>
+              <p className="mt-1 text-sm text-ink-muted">
                 Navigation is locked while this run is active.
               </p>
             </div>
@@ -183,17 +183,17 @@ export function RunExtractionStep() {
       {result && status === "complete" ? (
         <Panel title="Run summary">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Fetched</p>
+            <div className="rounded-xl bg-paper-elevated p-4">
+              <p className="text-xs text-ink-muted">Fetched</p>
               <p className="metric-value mt-1 text-2xl">{result.imapFetched}</p>
             </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Enqueued</p>
+            <div className="rounded-xl bg-paper-elevated p-4">
+              <p className="text-xs text-ink-muted">Enqueued</p>
               <p className="metric-value mt-1 text-2xl">{result.enqueued}</p>
             </div>
           </div>
           {result.enqueued === 0 && result.imapFetched > 0 ? (
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-ink-muted">
               All fetched emails were already processed for this query.
             </p>
           ) : null}

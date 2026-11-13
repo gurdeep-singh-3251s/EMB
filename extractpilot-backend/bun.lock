@@ -126,7 +126,7 @@
 
     "@repo/feature-user-query": ["@repo/feature-user-query@file:packages/features/userQuery", { "dependencies": { "@repo/db": "file:../../db", "@repo/dto": "file:../../dto", "@repo/types": "file:../../types", "drizzle-orm": "^0.40.0", "zod": "^3.24.2" }, "devDependencies": { "typescript": "^5.8.3" } }],
 
-    "@repo/types": ["@repo/types@file:packages/types", { "dependencies": { "@repo/config": "file:./packages/config", "@repo/db": "file:./packages/db", "@repo/dto": "file:./packages/dto" }, "devDependencies": { "@types/node": "^22.10.0", "typescript": "^5.8.3" } }],
+    "@repo/types": ["@repo/types@file:packages/types", { "dependencies": { "@repo/config": "file:../config", "@repo/db": "file:../db", "@repo/dto": "file:../dto" }, "devDependencies": { "@types/node": "^22.10.0", "typescript": "^5.8.3" } }],
 
     "@selderee/plugin-htmlparser2": ["@selderee/plugin-htmlparser2@0.12.0", "", { "dependencies": { "domelementtype": "~2.3.0", "domhandler": "~5.0.3" }, "peerDependencies": { "selderee": "~0.12.0" } }, "sha512-oELmoyA6ML9jDRMV3kgcMQFKxUfBU0yFVn6yTctVaLT5ygXnxH52I3TZEgV9EhXJC68/uFvE5Daj1/25c0Xa/A=="],
 
@@ -368,49 +368,49 @@
 
     "@esbuild-kit/core-utils/esbuild": ["esbuild@0.18.20", "", { "optionalDependencies": { "@esbuild/android-arm": "0.18.20", "@esbuild/android-arm64": "0.18.20", "@esbuild/android-x64": "0.18.20", "@esbuild/darwin-arm64": "0.18.20", "@esbuild/darwin-x64": "0.18.20", "@esbuild/freebsd-arm64": "0.18.20", "@esbuild/freebsd-x64": "0.18.20", "@esbuild/linux-arm": "0.18.20", "@esbuild/linux-arm64": "0.18.20", "@esbuild/linux-ia32": "0.18.20", "@esbuild/linux-loong64": "0.18.20", "@esbuild/linux-mips64el": "0.18.20", "@esbuild/linux-ppc64": "0.18.20", "@esbuild/linux-riscv64": "0.18.20", "@esbuild/linux-s390x": "0.18.20", "@esbuild/linux-x64": "0.18.20", "@esbuild/netbsd-x64": "0.18.20", "@esbuild/openbsd-x64": "0.18.20", "@esbuild/sunos-x64": "0.18.20", "@esbuild/win32-arm64": "0.18.20", "@esbuild/win32-ia32": "0.18.20", "@esbuild/win32-x64": "0.18.20" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-ceqxoedUrcayh7Y7ZX6NdbbDzGROiyVBgC4PriJThBKSVPWnnFHZAkfI1lJT8QFkOwH4qOS2SJkS4wvpGl8BpA=="],
 
-    "@repo/feature-attachment/@repo/db": ["@repo/db@file:packages\\db", {}],
+    "@repo/feature-attachment/@repo/db": ["@repo/db@file:packages/db", {}],
 
-    "@repo/feature-attachment/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-attachment/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-email/@repo/db": ["@repo/db@file:packages\\db", {}],
+    "@repo/feature-email/@repo/db": ["@repo/db@file:packages/db", {}],
 
-    "@repo/feature-email/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-email/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-email/@repo/feature-queue": ["@repo/feature-queue@file:packages\\features\\queue", {}],
+    "@repo/feature-email/@repo/feature-queue": ["@repo/feature-queue@file:packages/features/queue", {}],
 
-    "@repo/feature-email/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-email/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/feature-extraction/@repo/feature-paddle-ocr": ["@repo/feature-paddle-ocr@file:packages\\features\\paddleOcr", {}],
+    "@repo/feature-extraction/@repo/feature-paddle-ocr": ["@repo/feature-paddle-ocr@file:packages/features/paddleOcr", {}],
 
-    "@repo/feature-extraction/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-extraction/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/feature-failed-job/@repo/db": ["@repo/db@file:packages\\db", {}],
+    "@repo/feature-failed-job/@repo/db": ["@repo/db@file:packages/db", {}],
 
-    "@repo/feature-failed-job/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-failed-job/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-ingestion/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-ingestion/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/feature-paddle-ocr/@repo/config": ["@repo/config@file:packages\\config", {}],
+    "@repo/feature-paddle-ocr/@repo/config": ["@repo/config@file:packages/config", {}],
 
-    "@repo/feature-paddle-ocr/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-paddle-ocr/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-paddle-ocr/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-paddle-ocr/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/feature-queue/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-queue/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-queue/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-queue/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/feature-user-query/@repo/db": ["@repo/db@file:packages\\db", {}],
+    "@repo/feature-user-query/@repo/db": ["@repo/db@file:packages/db", {}],
 
-    "@repo/feature-user-query/@repo/dto": ["@repo/dto@file:packages\\dto", {}],
+    "@repo/feature-user-query/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
-    "@repo/feature-user-query/@repo/types": ["@repo/types@file:packages\\types", {}],
+    "@repo/feature-user-query/@repo/types": ["@repo/types@file:packages/types", {}],
 
-    "@repo/types/@repo/config": ["@repo/config@file:packages\\types\\packages\\config", {}],
+    "@repo/types/@repo/config": ["@repo/config@file:packages/config", {}],
 
-    "@repo/types/@repo/db": ["@repo/db@file:packages\\types\\packages\\db", {}],
+    "@repo/types/@repo/db": ["@repo/db@file:packages/db", {}],
 
-    "@repo/types/@repo/dto": ["@repo/dto@file:packages\\types\\packages\\dto", {}],
+    "@repo/types/@repo/dto": ["@repo/dto@file:packages/dto", {}],
 
     "bullmq/ioredis": ["ioredis@5.10.1", "", { "dependencies": { "@ioredis/commands": "1.5.1", "cluster-key-slot": "^1.1.0", "debug": "^4.3.4", "denque": "^2.1.0", "lodash.defaults": "^4.2.0", "lodash.isarguments": "^3.1.0", "redis-errors": "^1.2.0", "redis-parser": "^3.0.0", "standard-as-callback": "^2.1.0" } }, "sha512-HuEDBTI70aYdx1v6U97SbNx9F1+svQKBDo30o0b9fw055LMepzpOOd0Ccg9Q6tbqmBSJaMuY0fB7yw9/vjBYCA=="],
 

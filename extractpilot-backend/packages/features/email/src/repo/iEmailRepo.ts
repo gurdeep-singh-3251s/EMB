@@ -48,4 +48,4 @@ export interface IEmailRepo {
   ): Promise<EmailDetail | null>;
 }
 
-export type EmailRepoDeps = { db: Database };
+export type EmailRepoDeps = { db: Database; ownerUserId?: string | null };

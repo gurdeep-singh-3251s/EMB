@@ -1,5 +1,6 @@
 import type { Env } from "@repo/config";
 import { authEnabled, extractBearerToken, verifyAccessToken } from "./jwt";
+import { looksLikeJwt } from "./tokenKind";
 
 export function extractApiKey(req: Request): string | null {
   const auth = req.headers.get("Authorization");
@@ -54,22 +55,36 @@ export function isTrustedBrowserOrigin(req: Request, env: Env): boolean {
 async function isValidSessionToken(req: Request, env: Env): Promise<boolean> {
   if (!authEnabled(env)) return false;
   const token = extractBearerToken(req);
-  if (!token) return false;
+  if (!token || !looksLikeJwt(token)) return false;
   const user = await verifyAccessToken(token, env);
   return user !== null;
 }
 
+function integratorKeyValid(req: Request, env: Env): boolean {
+  const configured = env.restApiKey?.trim();
+  if (!configured || !env.integratorApiKeyEnabled) return false;
+  const headerKey = req.headers.get("X-API-Key")?.trim();
+  if (!headerKey) return false;
+  return timingSafeEqual(headerKey, configured);
+}
+
 /** API key valid, JWT session valid, auth disabled, or trusted same-origin browser session. */
 export async function isRequestAuthorized(req: Request, env: Env): Promise<boolean> {
-  if (await isValidSessionToken(req, env)) return true;
+  if (authEnabled(env)) {
+    if (await isValidSessionToken(req, env)) return true;
+    return integratorKeyValid(req, env);
+  }
 
   const configured = env.restApiKey?.trim();
   if (!configured) {
-    return !authEnabled(env);
+    return true;
   }
 
-  const provided = extractApiKey(req);
-  if (provided && timingSafeEqual(provided, configured)) return true;
+  const bearer = extractBearerToken(req);
+  if (bearer && timingSafeEqual(bearer, configured)) return true;
+
+  const headerKey = req.headers.get("X-API-Key")?.trim();
+  if (headerKey && timingSafeEqual(headerKey, configured)) return true;
 
   return isTrustedBrowserOrigin(req, env);
 }
@@ -83,7 +98,8 @@ export function isApiKeyValid(req: Request, env: Env): boolean {
 
 export const PUBLIC_REST_PATHS = new Set([
   "/api/v1/plans",
-  "/api/v1/usage",
+  "/api/v1/prompt-templates",
+  "/api/v1/llm-models",
   "/api/v1/billing/webhook",
   "/api/v1/auth/google",
   "/api/v1/auth/google/callback",

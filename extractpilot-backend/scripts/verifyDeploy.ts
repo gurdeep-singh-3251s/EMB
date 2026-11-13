@@ -44,7 +44,18 @@ console.log(`Checking ExtractPilot deploy\n  Web: ${webUrl}\n  API: ${apiUrl}\n`
 
 await run("API health", `${apiUrl}/health`, true);
 await run("API plans (public)", `${apiUrl}/api/v1/plans`, true);
-await run("API usage (public)", `${apiUrl}/api/v1/usage`, true);
+// Usage requires JWT — expect 401 without auth
+const usageRes = await fetch(`${apiUrl}/api/v1/usage`, { headers: { accept: "application/json" } });
+if (usageRes.status === 401) {
+  console.log("✓ API usage protected (401 without auth)");
+  passed++;
+} else if (usageRes.ok) {
+  console.log("✓ API usage (200 — key or public mode)");
+  passed++;
+} else {
+  console.error(`✗ API usage — HTTP ${usageRes.status}`);
+  failed++;
+}
 await run("Web home", webUrl, false);
 await run("Web dashboard", `${webUrl}/dashboard`, false);
 

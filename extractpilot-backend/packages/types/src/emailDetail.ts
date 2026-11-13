@@ -14,6 +14,7 @@ export interface EmailListItem {
 }
 
 export interface EmailDetail extends EmailListItem {
+  ownerUserId?: string | null;
   rawContent: string | null;
   userQueryId?: string | null;
   userQuerySchema?: Record<string, unknown> | null;

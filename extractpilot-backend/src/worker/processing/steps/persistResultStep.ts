@@ -1,6 +1,8 @@
+import type { Database } from "@repo/db";
 import type { IEmailService } from "@repo/feature-email";
 import { DTO } from "@repo/dto";
 import { ProcessingStatus } from "@repo/types/email";
+import { dispatchExtractionEvent } from "../../../infra/workspaceIntegrations";
 import type { ProcessingContext } from "@repo/types/workerProcessing";
 import { toLogMetaJson } from "../../shared/logger";
 import { logPipeline, traceMeta } from "../pipelineLog";
@@ -9,7 +11,10 @@ import type { IPersistResultProvider } from "../iProcessingProviders";
 import type { PersistStepResult } from "../workerProcessingTypes";
 
 export class PersistResultStep implements IPersistResultProvider {
-  constructor(private readonly emailService: IEmailService) {}
+  constructor(
+    private readonly emailService: IEmailService,
+    private readonly db: Database,
+  ) {}
 
   async run(ctx: ProcessingContext): Promise<DTO<PersistStepResult>> {
     logPipeline("6-persist-result", "start", traceMeta(ctx));
@@ -32,6 +37,8 @@ export class PersistResultStep implements IPersistResultProvider {
         parsedEmail: toLogMetaJson(ctx.parsed.email),
       };
       logPipeline("6-persist-result", "done", doneMeta);
+
+      dispatchExtractionEvent(this.db, ctx.emailUuid, "extraction.completed", status);
 
       const result: PersistStepResult = { ctx, status };
       return DTO.Success(result);

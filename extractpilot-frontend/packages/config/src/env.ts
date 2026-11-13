@@ -66,12 +66,15 @@ export function loadEnv() {
     },
     attachmentRetentionDays: envNumber("ATTACHMENT_RETENTION_DAYS", 7),
     /** Workspace plan fallback when no Stripe subscription in DB: free | standard | premium */
-    activePlan: envEnum("ACTIVE_PLAN", ["free", "standard", "premium"] as const, "free"),
+    activePlan: envEnum("ACTIVE_PLAN", ["free", "standard", "premium", "enterprise"] as const, "free"),
     stripe: {
       secretKey: process.env.STRIPE_SECRET_KEY?.trim() ?? "",
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "",
       priceStandard: process.env.STRIPE_PRICE_STANDARD?.trim() ?? "",
       pricePremium: process.env.STRIPE_PRICE_PREMIUM?.trim() ?? "",
+      priceEnterprise: process.env.STRIPE_PRICE_ENTERPRISE?.trim() ?? "",
+      priceSetup: process.env.STRIPE_PRICE_SETUP?.trim() ?? "",
+      firstMonthCoupon: process.env.STRIPE_COUPON_FIRST_MONTH?.trim() ?? "",
     },
     /** When false (default), Stripe checkout/portal are disabled — beta invite-only mode. */
     enableBilling: process.env.ENABLE_BILLING === "true",
@@ -91,9 +94,9 @@ export function loadEnv() {
     maxFailedEmailRequeues: envNumber("MAX_FAILED_EMAIL_REQUEUES", 3),
     openRouter: {
       apiKey: openRouterKey ?? "",
-      model: process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
-      classifyModel: process.env.OPENROUTER_CLASSIFY_MODEL ?? process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
-      extractModel: process.env.OPENROUTER_EXTRACT_MODEL ?? process.env.OPENROUTER_MODEL ?? "qwen/qwen3-8b",
+      model: process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
+      classifyModel: process.env.OPENROUTER_CLASSIFY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
+      extractModel: process.env.OPENROUTER_EXTRACT_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash",
       baseUrl: process.env.OPENROUTER_BASE_URL,
       debug: process.env.OPENROUTER_DEBUG === "true",
       debugMaxChars: envNumber("OPENROUTER_DEBUG_MAX_CHARS", 4000),

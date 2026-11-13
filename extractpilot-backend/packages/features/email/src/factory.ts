@@ -5,16 +5,16 @@ import type { IEmailService } from "./service/iEmailService";
 import { EmailRepo } from "./repo/emailRepo";
 import { EmailService } from "./service/emailService";
 
-export function createEmailRepo(db: Database): IEmailRepo {
-  return new EmailRepo({ db });
+export function createEmailRepo(db: Database, options?: { ownerUserId?: string | null }): IEmailRepo {
+  return new EmailRepo({ db, ownerUserId: options?.ownerUserId ?? null });
 }
 
 export function createEmailService(
   db: Database,
-  options?: { progressPublisher?: ExtractionProgressPublisher },
+  options?: { progressPublisher?: ExtractionProgressPublisher; ownerUserId?: string | null },
 ): IEmailService {
   return new EmailService({
-    repo: createEmailRepo(db),
+    repo: createEmailRepo(db, { ownerUserId: options?.ownerUserId }),
     progressPublisher: options?.progressPublisher,
   });
 }

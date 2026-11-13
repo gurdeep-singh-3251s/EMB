@@ -10,8 +10,11 @@ const fieldSpecSchema = z.object({
 
 export const createUserQuerySchema = z
   .object({
+    name: z.string().min(1).max(120).optional(),
     userQuery: z.string().min(1).max(4000),
     outputSchema: z.record(fieldSpecSchema),
+    classifyModel: z.string().min(3).max(128).optional(),
+    extractModel: z.string().min(3).max(128).optional(),
   })
   .superRefine((val, ctx) => {
     const check = validateOperatorQuery(val.userQuery);

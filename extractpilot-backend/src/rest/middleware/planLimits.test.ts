@@ -10,6 +10,7 @@ describe("resolveActivePlanId", () => {
   test("accepts valid plan ids", () => {
     expect(resolveActivePlanId("standard")).toBe("standard");
     expect(resolveActivePlanId("premium")).toBe("premium");
+    expect(resolveActivePlanId("enterprise")).toBe("enterprise");
   });
 });
 

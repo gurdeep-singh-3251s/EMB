@@ -11,10 +11,32 @@ export type FieldSpec = {
 
 export type UserQueryRow = {
   id: string;
+  name: string | null;
   userQuery: string;
   outputSchema: Record<string, FieldSpec>;
+  classifyModel: string | null;
+  extractModel: string | null;
   status: "active" | "paused" | "closed";
   createdAt: string;
+};
+
+export type LlmModelsResponse = {
+  planId: string;
+  planName: string;
+  defaults: { classify: string; extract: string };
+  models: Array<{
+    id: string;
+    label: string;
+    description: string;
+    minPlan: string;
+    tier: string;
+    costHint: string;
+    recommendedFor: "classify" | "extract" | "both" | string;
+  }>;
+  policy?: {
+    modelAllowlist: string[];
+    onlyEnterpriseCanPickModels: boolean;
+  };
 };
 
 export type ExtractedRow = {
@@ -122,7 +144,13 @@ export type StoredEmailAttachment = {
 
 export const restClient = {
   userQuery: {
-    create(body: { userQuery: string; outputSchema: Record<string, FieldSpec> }) {
+    create(body: {
+      name?: string;
+      userQuery: string;
+      outputSchema: Record<string, FieldSpec>;
+      classifyModel?: string;
+      extractModel?: string;
+    }) {
       return apiFetch<UserQueryRow>("/api/v1/user-query", {
         method: "POST",
         body: JSON.stringify(body),
@@ -131,11 +159,22 @@ export const restClient = {
     current() {
       return apiFetch<UserQueryRow | null>("/api/v1/user-query/current");
     },
+    list(params?: { limit?: number; offset?: number }) {
+      const q = new URLSearchParams();
+      if (params?.limit) q.set("limit", String(params.limit));
+      if (params?.offset) q.set("offset", String(params.offset));
+      const qs = q.toString();
+      return apiFetch<{ items: UserQueryRow[]; total: number }>(`/api/v1/user-queries${qs ? `?${qs}` : ""}`);
+    },
+    activate(id: string) {
+      return apiFetch<UserQueryRow>(`/api/v1/user-queries/${id}/activate`, { method: "POST" });
+    },
     results(params?: {
       limit?: number;
       offset?: number;
       timeRange?: string;
       includeInProgress?: boolean;
+      userQueryId?: string;
     }) {
       const q = new URLSearchParams();
       if (params?.limit) q.set("limit", String(params.limit));
@@ -143,7 +182,36 @@ export const restClient = {
       if (params?.timeRange) q.set("timeRange", params.timeRange);
       if (params?.includeInProgress) q.set("includeInProgress", "true");
       const qs = q.toString();
-      return apiFetch<ResultsPage>(`/api/v1/user-query/current/results${qs ? `?${qs}` : ""}`);
+      const base =
+        params?.userQueryId && params.userQueryId !== "current"
+          ? `/api/v1/user-query/${params.userQueryId}/results`
+          : `/api/v1/user-query/current/results`;
+      return apiFetch<ResultsPage>(`${base}${qs ? `?${qs}` : ""}`);
+    },
+  },
+  promptStudio: {
+    models() {
+      return apiFetch<LlmModelsResponse>("/api/v1/llm-models");
+    },
+    enhance(body: { userQuery: string; goal?: string; model?: string }) {
+      return apiFetch<{ userQuery: string; rationale?: string; modelUsed: string }>(
+        "/api/v1/prompt-studio/enhance",
+        { method: "POST", body: JSON.stringify(body) },
+      );
+    },
+    enhancements() {
+      return apiFetch<{ items: Array<Record<string, unknown>> }>("/api/v1/prompt-studio/enhancements");
+    },
+    abCompare(body: { emailId: string; promptAId: string; promptBId: string }) {
+      return apiFetch<{
+        id: string;
+        relevantA: boolean;
+        relevantB: boolean;
+        fieldDiffs: Array<{ field: string; valueA: unknown; valueB: unknown; match: boolean }>;
+      }>("/api/v1/prompt-studio/ab-compare", { method: "POST", body: JSON.stringify(body) });
+    },
+    abHistory() {
+      return apiFetch<{ items: Array<Record<string, unknown>> }>("/api/v1/prompt-studio/ab-history");
     },
   },
   mailbox: {
@@ -199,6 +267,98 @@ export const restClient = {
       });
     },
   },
+  mailboxes: {
+    list() {
+      return apiFetch<{ mailboxes: Array<Record<string, unknown>> }>("/api/v1/mailboxes");
+    },
+    connect(body: {
+      user: string;
+      password: string;
+      host?: string;
+      port?: number;
+      provider?: string;
+      providerPreset?: string;
+      label?: string;
+      setActive?: boolean;
+    }) {
+      return apiFetch<{ mailbox: Record<string, unknown>; mailboxes: Array<Record<string, unknown>> }>(
+        "/api/v1/mailboxes",
+        { method: "POST", body: JSON.stringify(body) },
+      );
+    },
+    activate(mailboxId: string) {
+      return apiFetch<{ mailboxes: Array<Record<string, unknown>> }>("/api/v1/mailboxes/activate", {
+        method: "POST",
+        body: JSON.stringify({ mailboxId }),
+      });
+    },
+    remove(mailboxId: string) {
+      return apiFetch<{ mailboxes: Array<Record<string, unknown>> }>(`/api/v1/mailboxes/${mailboxId}`, {
+        method: "DELETE",
+      });
+    },
+  },
+  ops: {
+    health() {
+      return apiFetch<Record<string, unknown>>("/api/v1/ops/health");
+    },
+    failures() {
+      return apiFetch<{ items: Array<Record<string, unknown>> }>("/api/v1/ops/failures");
+    },
+    retryFailure(body: { emailId?: string; failedJobId?: string }) {
+      return apiFetch<{ emailId: string; requeued: boolean }>("/api/v1/ops/retry-failure", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    retryAllFailures() {
+      return apiFetch<{ requeued: number }>("/api/v1/ops/retry-all-failures", { method: "POST" });
+    },
+    replayDlq(limit?: number) {
+      return apiFetch<{ replayed: number; scanned: number }>("/api/v1/ops/replay-dlq", {
+        method: "POST",
+        body: JSON.stringify({ limit }),
+      });
+    },
+  },
+  integrations: {
+    get() {
+      return apiFetch<{
+        webhookUrl: string | null;
+        slackWebhookUrl: string | null;
+        notifyOnExtractionCompleted: boolean;
+        notifyOnFailure: boolean;
+      }>("/api/v1/integrations");
+    },
+    patch(body: Partial<{
+      webhookUrl: string | null;
+      slackWebhookUrl: string | null;
+      notifyOnExtractionCompleted: boolean;
+      notifyOnFailure: boolean;
+    }>) {
+      return apiFetch<Record<string, unknown>>("/api/v1/integrations", {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
+    },
+  },
+  auditLog: {
+    list(limit?: number) {
+      const qs = limit ? `?limit=${limit}` : "";
+      return apiFetch<{ items: Array<{ id: string; action: string; detail: unknown; createdAt: string }> }>(
+        `/api/v1/audit-log${qs}`,
+      );
+    },
+  },
+  workspace: {
+    get() {
+      return apiFetch<{
+        planId: string;
+        seats: { used: number; limit: number; inviteComingSoon: boolean };
+        members: Array<{ id: string; email: string | null; name: string | null; role: string }>;
+      }>("/api/v1/workspace");
+    },
+  },
   plans: {
     list() {
       return apiFetch<{
@@ -244,10 +404,15 @@ export const restClient = {
         inviteOnly: boolean;
       }>("/api/v1/billing/status");
     },
-    checkout(planId: "standard" | "premium") {
+    checkout(planId: "standard" | "premium" | "enterprise") {
       return apiFetch<{ url: string | null; sessionId: string }>("/api/v1/billing/checkout", {
         method: "POST",
         body: JSON.stringify({ planId }),
+      });
+    },
+    checkoutSetup() {
+      return apiFetch<{ url: string | null; sessionId: string }>("/api/v1/billing/checkout-setup", {
+        method: "POST",
       });
     },
     portal() {

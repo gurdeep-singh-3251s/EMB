@@ -8,6 +8,27 @@ export interface OpenRouterConfig {
 
 import { SYSTEM_JSON_SECURITY } from "../schema/promptSecurity";
 
+export type LlmCallMeta = {
+  step: string;
+  model?: string;
+  ownerUserId?: string | null;
+};
+
+export type LlmUsageSink = (payload: {
+  ownerUserId: string;
+  model: string;
+  step: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}) => void | Promise<void>;
+
+let llmUsageSink: LlmUsageSink | null = null;
+
+export function bindLlmUsageSink(sink: LlmUsageSink | null): void {
+  llmUsageSink = sink;
+}
+
 export class OpenRouterService {
   constructor(private readonly config: OpenRouterConfig) {}
 
@@ -60,7 +81,7 @@ export class OpenRouterService {
     return cleaned;
   }
 
-  async completeJson(prompt: string, meta?: { step: string; model?: string }): Promise<string> {
+  async completeJson(prompt: string, meta?: LlmCallMeta): Promise<string> {
     const step = meta?.step ?? "request";
     const model = meta?.model ?? this.config.model;
     this.debugLog(`${step}:prompt`, prompt);
@@ -92,7 +113,21 @@ export class OpenRouterService {
 
     const json = (await res.json()) as {
       choices?: Array<{ message?: { content?: string | null; reasoning?: string | null } }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
     };
+
+    const usage = json.usage;
+    const ownerUserId = meta?.ownerUserId?.trim();
+    if (llmUsageSink && ownerUserId && usage) {
+      void llmUsageSink({
+        ownerUserId,
+        model,
+        step,
+        promptTokens: usage.prompt_tokens ?? 0,
+        completionTokens: usage.completion_tokens ?? 0,
+        totalTokens: usage.total_tokens ?? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0),
+      });
+    }
 
     const message = json.choices?.[0]?.message;
     if (!message) throw new Error("OpenRouter returned no message");
