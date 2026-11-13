@@ -66,7 +66,12 @@ async function handleApiV1RequestInner(req: Request, deps: RestHandlerDeps): Pro
 
   {
     const tenantUserId = deps.getTenantUserId();
-    const planId = await getActivePlanId(deps.getDb(), deps.env, tenantUserId);
+    let planId: any = "free";
+    try {
+      planId = await getActivePlanId(deps.getDb(), deps.env, tenantUserId);
+    } catch {
+      planId = "free";
+    }
     const rl = await checkRateLimit({
       redis: deps.getRedis(),
       env: deps.env,

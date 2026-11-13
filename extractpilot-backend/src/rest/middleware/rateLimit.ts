@@ -17,25 +17,38 @@ export type RateLimitInput = {
   path: string;
 };
 
+function isRedisAvailable(redis: Redis | null): boolean {
+  if (!redis) return false;
+  if (redis.status && redis.status !== "ready" && redis.status !== "connect") return false;
+  return true;
+}
+
 async function incrementBucket(
   redis: Redis | null,
   key: string,
   limit: number,
 ): Promise<{ limited: boolean; limit: number; remaining: number }> {
-  if (!redis) {
+  if (!isRedisAvailable(redis)) {
     return { limited: false, limit, remaining: limit };
   }
 
-  const bucket = Math.floor(Date.now() / (WINDOW_SECONDS * 1000));
-  const redisKey = `${key}:${bucket}`;
+  try {
+    const bucket = Math.floor(Date.now() / (WINDOW_SECONDS * 1000));
+    const redisKey = `${key}:${bucket}`;
 
-  const count = await redis.incr(redisKey);
-  if (count === 1) {
-    await redis.expire(redisKey, WINDOW_SECONDS + 1);
+    const count = await Promise.race([
+      redis.incr(redisKey),
+      new Promise<number>((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), 500)),
+    ]);
+    if (count === 1) {
+      void redis.expire(redisKey, WINDOW_SECONDS + 1).catch(() => {});
+    }
+
+    const remaining = Math.max(0, limit - count);
+    return { limited: count > limit, limit, remaining };
+  } catch {
+    return { limited: false, limit, remaining: limit };
   }
-
-  const remaining = Math.max(0, limit - count);
-  return { limited: count > limit, limit, remaining };
 }
 
 export async function checkRateLimit(input: RateLimitInput): Promise<{
@@ -83,20 +96,27 @@ export async function checkRateLimitLegacy(
   path: string,
 ): Promise<{ limited: boolean; limit: number; remaining: number }> {
   const limit = PLANS[planId].limits.requestsPerMinute;
-  if (!redis) {
+  if (!redis || redis.status !== "ready") {
     return { limited: false, limit, remaining: limit };
   }
 
-  const bucket = Math.floor(Date.now() / (WINDOW_SECONDS * 1000));
-  const key = `rl:${scope}:${planId}:${path}:${bucket}`;
+  try {
+    const bucket = Math.floor(Date.now() / (WINDOW_SECONDS * 1000));
+    const key = `rl:${scope}:${planId}:${path}:${bucket}`;
 
-  const count = await redis.incr(key);
-  if (count === 1) {
-    await redis.expire(key, WINDOW_SECONDS + 1);
+    const count = await Promise.race([
+      redis.incr(key),
+      new Promise<number>((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), 500)),
+    ]);
+    if (count === 1) {
+      void redis.expire(key, WINDOW_SECONDS + 1).catch(() => {});
+    }
+
+    const remaining = Math.max(0, limit - count);
+    return { limited: count > limit, limit, remaining };
+  } catch {
+    return { limited: false, limit, remaining: limit };
   }
-
-  const remaining = Math.max(0, limit - count);
-  return { limited: count > limit, limit, remaining };
 }
 
 export function rateLimitResponse(limit: number): Response {

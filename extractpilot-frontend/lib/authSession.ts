@@ -26,6 +26,5 @@ export function clearAuthToken(): void {
 }
 
 export function getGoogleLoginUrl(): string {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-  return `${apiBase}/api/v1/auth/google`;
+  return "/api/v1/auth/google";
 }

@@ -13,7 +13,12 @@ function billingEnabled(env: RestHandlerDeps["env"]): boolean {
 class PlansHandler extends BaseRestController {
   async listPlans(): Promise<Response> {
     const tenantUserId = getRequestTenantUserId();
-    const activePlanId = await getActivePlanId(this.deps.getDb(), this.deps.env, tenantUserId);
+    let activePlanId: any = "free";
+    try {
+      activePlanId = await getActivePlanId(this.deps.getDb(), this.deps.env, tenantUserId);
+    } catch {
+      activePlanId = "free";
+    }
     const redis = this.deps.getRedis();
     const cacheKey = tenantCacheKey("plans", tenantUserId, activePlanId);
 
