@@ -32,7 +32,11 @@ export type LlmModelsResponse = {
     tier: string;
     costHint: string;
     recommendedFor: "classify" | "extract" | "both" | string;
+    available?: boolean;
+    provider?: string;
   }>;
+  catalog?: Array<Record<string, unknown>>;
+  stats?: { onPlan: number; availableOnPlan: number; catalogTotal: number };
   policy?: {
     modelAllowlist: string[];
     onlyEnterpriseCanPickModels: boolean;

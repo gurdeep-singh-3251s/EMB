@@ -35,20 +35,20 @@ export default function DashboardOverviewPage() {
   const onboarding = [
     {
       done: !!query,
-      label: "Write what to extract",
-      detail: "Save a prompt and JSON schema in Prompt studio.",
+      label: "Pick a real-estate prompt",
+      detail: "Buyer leads, listings, showings, offers, or escrow — then save & activate.",
       href: "/dashboard/prompts",
     },
     {
       done: Boolean(mailbox?.configured),
-      label: "Connect a mailbox",
-      detail: "Gmail, Outlook, or any IMAP inbox. Add more later.",
+      label: "Connect agent Gmails",
+      detail: "Add multiple Gmail inboxes. Extraction uses the active one.",
       href: "/dashboard/mailboxes",
     },
     {
       done: (stats?.completed ?? 0) > 0,
-      label: "Run your first extraction",
-      detail: "Pick a short lookback, extract, then review results.",
+      label: "Run extraction & show confidence",
+      detail: "Managers can review confidence scores before CRM sync.",
       href: "/dashboard/workflow?step=3",
     },
   ];

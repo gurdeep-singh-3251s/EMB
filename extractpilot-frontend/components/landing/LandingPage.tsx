@@ -10,38 +10,38 @@ import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
 import { HeroAmbient } from "@/components/motion/HeroAmbient";
 import { MotionCard } from "@/components/motion/MotionCard";
 
-const providers = ["Gmail", "Outlook", "Zoho", "Yahoo", "iCloud", "Any IMAP"];
+const providers = ["Agent Gmail", "Office Outlook", "Transaction desk", "Property mgmt", "Any IMAP"];
 
 const workflowSteps = [
   {
     n: "01",
-    title: "Connect every inbox you run",
-    body: "AP, sales, founders, shared ops — add multiple mailboxes and switch the active one when you extract.",
+    title: "Connect every brokerage inbox",
+    body: "Add multiple Gmail accounts for agents, ISAs, and managers. Switch the active mailbox when you extract.",
   },
   {
     n: "02",
-    title: "Define the JSON once",
-    body: "Describe the fields you need. Enhance with AI, pick models by plan, and save versions you can reactivate.",
+    title: "Use real-estate prompts",
+    body: "Buyer leads, seller intake, showings, offers, escrow — or build your own schema with confidence scores.",
   },
   {
     n: "03",
-    title: "Automate the busywork",
-    body: "Run the pipeline, review results, export CSV, or push webhooks to the tools your team already uses.",
+    title: "Pick from 50+ AI models",
+    body: "Choose classify + extract models by plan. If a model is unavailable, ExtractPilot falls back automatically.",
   },
 ];
 
 const outcomes = [
   {
-    title: "Save 10+ hours a week",
-    body: "Stop retyping invoice numbers, PO lines, and supplier details from email into spreadsheets.",
+    title: "Built for brokerages",
+    body: "Managers see structured leads and listing intake instead of messy shared inboxes.",
   },
   {
-    title: "Live in about 10 minutes",
-    body: "Sign in, connect a mailbox, save a schema, run one extract — then scale the same flow across inboxes.",
+    title: "1,000 emails / week on Team",
+    body: "Enough volume for a busy sales floor — with 20+ AI models and multi-Gmail workspaces.",
   },
   {
-    title: "Connected with anyone",
-    body: "Works with the mailboxes your partners already use. No vendor lock-in to a single email provider.",
+    title: "Confidence you can trust",
+    body: "Every classification includes a confidence score so staff know what to review.",
   },
 ];
 
@@ -109,7 +109,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <LogoMark size="sm" />
-            <Wordmark subtitle="Inbox automation" />
+            <Wordmark subtitle="For real estate teams" />
           </Link>
           <div className="flex items-center gap-2">
             <LinkButton href="/pricing" variant="ghost" size="sm">
@@ -127,20 +127,20 @@ export function LandingPage() {
         <div className="relative mx-auto grid max-w-[1120px] gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
           <div className="hero-copy">
             <p className="font-display text-2xl font-extrabold tracking-tight text-night sm:text-3xl">ExtractPilot</p>
-            <h1 className="mt-5 text-[2.35rem] font-extrabold leading-[1.08] tracking-tight text-night sm:text-5xl lg:text-[3.15rem]">
-              Automate your workflows and save{" "}
-              <span className="text-accent">10+ hours a week</span> in just 10 minutes.
+            <h1 className="mt-5 text-[2.35rem] font-extrabold leading-[1.08] tracking-tight text-night sm:text-5xl lg:text-[3.05rem]">
+              Turn brokerage email into{" "}
+              <span className="text-accent">structured deals</span> — in about 10 minutes.
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-muted lg:text-[18px]">
-              Connect multiple mailboxes, extract structured JSON from anyone who emails you, and push clean data into
-              the tools your ops already trust.
+              Built for real-estate managers and agents: connect multiple Gmails, run industry prompts, pick from 50+ AI
+              models, and review confidence scores before anything hits your CRM.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <LinkButton href="/login" variant="accent" size="lg">
-                Start free — 10 minutes
+                Book a live demo workspace
               </LinkButton>
               <LinkButton href="/pricing" variant="secondary" size="lg">
-                See pricing
+                See Team · 1,000 emails/wk
               </LinkButton>
             </div>
             <div className="mt-10 flex flex-wrap gap-2">
@@ -160,24 +160,24 @@ export function LandingPage() {
       <section className="scroll-rise border-b border-ink/[0.06] bg-paper-elevated/70">
         <div className="mx-auto grid max-w-[1120px] gap-8 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="section-label-accent">Multi-mailbox</p>
+            <p className="section-label-accent">Multi-Gmail</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-night lg:text-4xl">
-              One workspace. Every inbox that matters.
+              One workspace for every agent inbox.
             </h2>
             <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-muted">
-              Finance, sales, support, and founder inboxes can all live in ExtractPilot. Add as many IMAP accounts as
-              you need, label them, and keep extraction on the active mailbox.
+              Connect as many Gmail accounts as you need — ISA, listing agents, transaction coordinators — then extract
+              from the active mailbox without sharing passwords across tools.
             </p>
             <Link href="/dashboard/mailboxes" className="link-arrow mt-8">
-              Open mailbox manager <span aria-hidden>↗</span>
+              Connect mailboxes <span aria-hidden>↗</span>
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { label: "AP inbox", meta: "ap@company.com · Gmail", active: true },
-              { label: "Orders", meta: "orders@company.com · Outlook", active: false },
-              { label: "Founder", meta: "you@company.com · IMAP", active: false },
-              { label: "Vendors", meta: "vendors@company.com · Zoho", active: false },
+              { label: "ISA desk", meta: "leads@brokerage.com · Gmail", active: true },
+              { label: "Listing agent", meta: "sam@brokerage.com · Gmail", active: false },
+              { label: "TC / escrow", meta: "closings@brokerage.com · Gmail", active: false },
+              { label: "Property mgmt", meta: "pm@brokerage.com · Outlook", active: false },
             ].map((box) => (
               <MotionCard
                 key={box.label}
@@ -202,13 +202,10 @@ export function LandingPage() {
 
       <section className="mx-auto max-w-[1120px] px-6 py-16">
         <div className="scroll-rise max-w-2xl">
-          <p className="section-label">Why teams switch</p>
+          <p className="section-label">Why brokerages choose ExtractPilot</p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-night">
-            Fully functional. Connected with anyone who emails you.
+            Feels purpose-built for real estate — not a generic inbox toy.
           </h2>
-          <p className="mt-3 text-[16px] text-ink-muted">
-            ExtractPilot is not a demo toy — prompts, models, review, webhooks, and REST are production-ready.
-          </p>
         </div>
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {outcomes.map((item) => (
@@ -223,11 +220,8 @@ export function LandingPage() {
       <section className="scroll-rise mx-auto max-w-[1120px] px-6 pb-6">
         <p className="section-label">How it works</p>
         <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-night">
-          From messy inbox to structured workflow.
+          From messy Gmail to CRM-ready fields.
         </h2>
-        <p className="mt-3 max-w-2xl text-[16px] text-ink-muted">
-          Ten minutes to first live extraction. Then the same pipeline runs across every mailbox you connect.
-        </p>
       </section>
 
       <section className="mx-auto grid max-w-[1120px] gap-4 px-6 pb-20 lg:grid-cols-3">
@@ -245,17 +239,18 @@ export function LandingPage() {
       <section className="scroll-rise saas-card-dark mx-6 mb-16 max-w-[1120px] lg:mx-auto">
         <div className="flex flex-col items-start justify-between gap-8 p-10 sm:p-12 lg:flex-row lg:items-center">
           <div>
-            <p className="section-label !text-white/50">Next step</p>
+            <p className="section-label !text-white/50">Manager demo</p>
             <p className="mt-3 text-2xl font-bold text-white lg:text-3xl">
-              Reclaim 10+ hours this week — start in 10 minutes.
+              Ready for your brokerage walkthrough.
             </p>
             <p className="mt-3 max-w-md text-[17px] text-white/70">
-              Connect your mailboxes, save one schema, and run your first automated extract on the free tier.
+              Sign in, connect two Gmails, load a buyer-lead prompt, pick an AI model, and show confidence-scored results
+              live.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <LinkButton href="/login" variant="accent" size="lg">
-              Create account
+              Start demo
             </LinkButton>
             <LinkButton href="/pricing" variant="inverse" size="lg">
               Compare plans
@@ -266,7 +261,7 @@ export function LandingPage() {
 
       <footer className="border-t border-ink/[0.06] px-6 py-8 text-[15px] text-ink-muted">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-4">
-          <span>ExtractPilot — automate inbox workflows across every mailbox</span>
+          <span>ExtractPilot — inbox automation for real estate teams</span>
           <div className="flex gap-5">
             <Link href="/privacy" className="hover:text-night">
               Privacy

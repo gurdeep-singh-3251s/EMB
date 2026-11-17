@@ -47,6 +47,11 @@ class PromptStudioHandler extends BaseRestController {
         defaults,
         models: allowed,
         catalog: LLM_MODELS,
+        stats: {
+          onPlan: allowed.length,
+          availableOnPlan: allowed.filter((m) => m.available !== false).length,
+          catalogTotal: LLM_MODELS.length,
+        },
         policy: {
           modelAllowlist: this.deps.env.llm.modelAllowlist,
           onlyEnterpriseCanPickModels: this.deps.env.llm.onlyEnterpriseCanPickModels,
@@ -210,27 +215,27 @@ class UserQueryCreateHandler extends BaseRestController {
       );
     }
 
-    let resolved: { classify: string; extract: string };
-    try {
-      resolved = resolveModelsForPlan(
-        planId,
-        {
-          classifyModel: parsed.data.classifyModel,
-          extractModel: parsed.data.extractModel,
-        },
-        this.deps.env.llm,
-      );
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Invalid model selection";
-      return this.validationError(message, null);
-    }
+    const resolved = resolveModelsForPlan(
+      planId,
+      {
+        classifyModel: parsed.data.classifyModel,
+        extractModel: parsed.data.extractModel,
+      },
+      this.deps.env.llm,
+    );
 
     const result = await this.ctx.services.userQuery.create({
       ...parsed.data,
       classifyModel: resolved.classify,
       extractModel: resolved.extract,
     });
-    return this.fromDto(result, 201);
+    if (!result.success) return this.fromDto(result, 201);
+
+    const notes: string[] = [];
+    if (resolved.fellBack.classify) notes.push(`Classify model unavailable — using ${resolved.classify}`);
+    if (resolved.fellBack.extract) notes.push(`Extract model unavailable — using ${resolved.extract}`);
+    const message = notes.length > 0 ? notes.join(". ") : null;
+    return this.success(result.data, message, 201);
   }
 }
 

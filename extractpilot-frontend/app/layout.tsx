@@ -11,9 +11,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "ExtractPilot — Automate inbox workflows",
+  title: "ExtractPilot — Inbox automation for real estate teams",
   description:
-    "Automate your workflows and save 10+ hours a week in just 10 minutes. Connect multiple mailboxes, extract structured JSON from anyone who emails you, and push clean data into your tools.",
+    "Built for brokerages: connect multiple Gmails, run real-estate prompts, pick from 50+ AI models, and review confidence-scored extractions in minutes.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -83,24 +83,24 @@ export default function PricingPage() {
 
       <main className="mx-auto max-w-6xl px-6 py-14 lg:py-16">
         <div ref={headRefBinding} className="max-w-2xl">
-          <p className="section-label-accent">Pricing</p>
-          <h1 className="page-title">Automate more inboxes as you grow.</h1>
+          <p className="section-label-accent">Pricing for brokerages</p>
+          <h1 className="page-title">Plans that match how real-estate teams work.</h1>
           <p className="page-lede">
-            Every plan includes multi-mailbox connections, schema extraction, review, and export. Higher tiers raise
-            email limits and unlock stronger AI models — so you keep saving hours every week.
+            Multi-Gmail workspaces, real-estate prompts, confidence scores, and 50+ AI models. Team includes{" "}
+            <strong className="font-semibold text-night">1,000 emails / week</strong> and{" "}
+            <strong className="font-semibold text-night">20+ AI models</strong>.
           </p>
           <ol className="mt-6 list-decimal space-y-2 pl-5 text-[15px] text-ink-muted">
             <li>
-              <strong className="font-semibold text-night">Start on Free</strong> — enough volume to prove it on your
-              real inbox.
+              <strong className="font-semibold text-night">Start free</strong> — demo on one agent inbox with RE prompts.
             </li>
             <li>
-              <strong className="font-semibold text-night">Upgrade monthly</strong> when you process more messages per
-              week.
+              <strong className="font-semibold text-night">Team at $29.99</strong> — 1,000 emails/week + 20+ models for
+              managers.
             </li>
             <li>
-              <strong className="font-semibold text-night">Add guided setup</strong> only if you want a live onboarding
-              call (optional).
+              <strong className="font-semibold text-night">Connect your workspace</strong> — optional white-glove setup
+              for the brokerage.
             </li>
           </ol>
           {billingEnabled ? (

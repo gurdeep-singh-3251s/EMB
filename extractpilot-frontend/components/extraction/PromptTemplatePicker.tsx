@@ -8,15 +8,21 @@ export function PromptTemplatePicker({
 }: {
   onApply: (template: { userQuery: string; outputSchema: Record<string, FieldSpec> }) => void;
 }) {
-  return (
-    <div className="mb-4 space-y-3">
-      <p className="text-sm font-semibold text-slate-800">Starter prompts (industry templates)</p>
+  const realEstate = PROMPT_TEMPLATES.filter((t) => t.category === "Real estate");
+  const other = PROMPT_TEMPLATES.filter((t) => t.category !== "Real estate");
+
+  function renderGrid(templates: PromptTemplate[], emphasize = false) {
+    return (
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {PROMPT_TEMPLATES.map((t: PromptTemplate) => (
+        {templates.map((t) => (
           <button
             key={t.id}
             type="button"
-            className="rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-blue-400 hover:shadow-sm"
+            className={`rounded-2xl border p-3.5 text-left transition ${
+              emphasize
+                ? "border-accent/25 bg-accent-soft/40 hover:border-accent/40 hover:bg-accent-soft/70"
+                : "border-ink/10 bg-paper-elevated hover:border-ink/20 hover:bg-paper"
+            }`}
             onClick={() =>
               onApply({
                 userQuery: t.userQuery,
@@ -24,13 +30,30 @@ export function PromptTemplatePicker({
               })
             }
           >
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t.category}</span>
-            <p className="mt-1 font-semibold text-slate-900">{t.name}</p>
-            <p className="mt-1 text-xs text-slate-600">{t.description}</p>
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-faint">{t.category}</span>
+            <p className="mt-1 font-semibold text-night">{t.name}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">{t.description}</p>
           </button>
         ))}
       </div>
-      <p className="text-xs text-slate-500">Unique to ExtractPilot: one-click schemas tuned for real inbox workflows.</p>
+    );
+  }
+
+  return (
+    <div className="mb-5 space-y-4">
+      <div>
+        <p className="text-[15px] font-semibold text-night">Real-estate starter prompts</p>
+        <p className="mt-1 text-[13px] text-ink-muted">
+          One click loads a schema managers can demo — buyer leads, listings, showings, offers, escrow.
+        </p>
+      </div>
+      {renderGrid(realEstate, true)}
+      {other.length > 0 ? (
+        <div>
+          <p className="mb-2 text-[13px] font-semibold text-ink-muted">Also available</p>
+          {renderGrid(other)}
+        </div>
+      ) : null}
     </div>
   );
 }
