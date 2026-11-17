@@ -22,13 +22,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-paper lg:grid lg:min-h-[100dvh] lg:grid-cols-2">
       <aside className="hidden border-r border-ink/[0.06] bg-paper-elevated/40 lg:flex lg:flex-col lg:justify-center lg:px-12 lg:py-12 xl:px-16">
-        <p className="section-label-accent">What you get after sign-in</p>
+        <p className="section-label-accent">Inbox automation</p>
         <h1 className="mt-4 max-w-md text-[1.75rem] font-bold leading-snug text-night xl:text-3xl">
-          A private workspace to turn inbox mail into JSON you can export.
+          Save 10+ hours a week — start in about 10 minutes.
         </h1>
         <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-muted">
-          Connect your mailbox, list the fields you care about, and review extractions before they leave your
-          workspace.
+          Connect multiple mailboxes, extract structured JSON from anyone who emails you, and keep every workspace
+          private to your Google account.
         </p>
         <div className="mt-8 w-full max-w-lg">
           <InboxToJsonDemo animated={false} />
@@ -44,8 +44,7 @@ export default function LoginPage() {
             </div>
 
             <p className="mb-6 text-[15px] leading-relaxed text-ink-muted lg:hidden">
-              ExtractPilot reads work email and fills the JSON fields you define — invoices, references, amounts, and
-              more.
+              Automate inbox workflows across multiple mailboxes and turn email from anyone into structured JSON.
             </p>
 
             {errorKey ? (

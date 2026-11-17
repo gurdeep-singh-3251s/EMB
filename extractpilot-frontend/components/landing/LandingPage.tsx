@@ -10,28 +10,39 @@ import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
 import { HeroAmbient } from "@/components/motion/HeroAmbient";
 import { MotionCard } from "@/components/motion/MotionCard";
 
-const steps = [
+const providers = ["Gmail", "Outlook", "Zoho", "Yahoo", "iCloud", "Any IMAP"];
+
+const workflowSteps = [
   {
-    n: "1",
-    title: "Connect your inbox",
-    body: "Use Gmail, Outlook, or any IMAP account. Messages stay in your workspace — we don’t mix customers.",
+    n: "01",
+    title: "Connect every inbox you run",
+    body: "AP, sales, founders, shared ops — add multiple mailboxes and switch the active one when you extract.",
   },
   {
-    n: "2",
-    title: "Say what to capture",
-    body: "List the fields you care about (reference number, amount, due date…). That becomes a JSON schema the AI must follow.",
+    n: "02",
+    title: "Define the JSON once",
+    body: "Describe the fields you need. Enhance with AI, pick models by plan, and save versions you can reactivate.",
   },
   {
-    n: "3",
-    title: "Review and use the data",
-    body: "We fetch mail, extract values, and show results you can fix. Then export, call the API, or send webhooks to your tools.",
+    n: "03",
+    title: "Automate the busywork",
+    body: "Run the pipeline, review results, export CSV, or push webhooks to the tools your team already uses.",
   },
 ];
 
-const proofs = [
-  { k: "Free tier", v: "Start without a credit card" },
-  { k: "Your schema", v: "You choose every JSON field" },
-  { k: "Your data", v: "CSV, API, or webhooks out" },
+const outcomes = [
+  {
+    title: "Save 10+ hours a week",
+    body: "Stop retyping invoice numbers, PO lines, and supplier details from email into spreadsheets.",
+  },
+  {
+    title: "Live in about 10 minutes",
+    body: "Sign in, connect a mailbox, save a schema, run one extract — then scale the same flow across inboxes.",
+  },
+  {
+    title: "Connected with anyone",
+    body: "Works with the mailboxes your partners already use. No vendor lock-in to a single email provider.",
+  },
 ];
 
 export function LandingPage() {
@@ -66,9 +77,18 @@ export function LandingPage() {
         delay: 0.15,
       });
 
+      gsap.from(".provider-chip", {
+        opacity: 0,
+        y: 10,
+        stagger: 0.05,
+        duration: 0.45,
+        ease: "power2.out",
+        delay: 0.55,
+      });
+
       gsap.utils.toArray<HTMLElement>(".scroll-rise").forEach((block) => {
         gsap.from(block, {
-          scrollTrigger: { trigger: block, start: "top 90%", toggleActions: "play none none none" },
+          scrollTrigger: { trigger: block, start: "top 88%", toggleActions: "play none none none" },
           opacity: 0,
           y: 36,
           duration: 0.8,
@@ -89,7 +109,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <LogoMark size="sm" />
-            <Wordmark subtitle="Emails in → JSON out" />
+            <Wordmark subtitle="Inbox automation" />
           </Link>
           <div className="flex items-center gap-2">
             <LinkButton href="/pricing" variant="ghost" size="sm">
@@ -104,29 +124,31 @@ export function LandingPage() {
 
       <section className="hero-grid-line relative overflow-hidden border-b border-ink/[0.06]">
         <HeroAmbient />
-        <div className="relative mx-auto grid max-w-[1120px] gap-12 px-6 py-16 lg:grid-cols-[1.02fr_0.98fr] lg:py-24">
+        <div className="relative mx-auto grid max-w-[1120px] gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
           <div className="hero-copy">
-            <span className="pill">For ops, finance, and founder-led teams</span>
-            <h1 className="mt-6 text-[2.35rem] font-extrabold leading-[1.1] tracking-tight text-night sm:text-5xl lg:text-[3.1rem]">
-              Stop copying fields out of work email.
+            <p className="font-display text-2xl font-extrabold tracking-tight text-night sm:text-3xl">ExtractPilot</p>
+            <h1 className="mt-5 text-[2.35rem] font-extrabold leading-[1.08] tracking-tight text-night sm:text-5xl lg:text-[3.15rem]">
+              Automate your workflows and save{" "}
+              <span className="text-accent">10+ hours a week</span> in just 10 minutes.
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-muted lg:text-[18px]">
-              ExtractPilot connects to your inbox, reads messages and attachments, and fills in the JSON fields{" "}
-              <strong className="font-semibold text-night">you</strong> define — so invoices, POs, and updates land
-              in your spreadsheet, ERP, or app without retyping.
+              Connect multiple mailboxes, extract structured JSON from anyone who emails you, and push clean data into
+              the tools your ops already trust.
             </p>
-            <ul className="mt-6 space-y-2 text-[15px] text-ink-muted">
-              <li>· Works with Gmail, Outlook, and IMAP</li>
-              <li>· You review results before anything is final</li>
-              <li>· Same data in the dashboard and REST API</li>
-            </ul>
             <div className="mt-9 flex flex-wrap gap-3">
               <LinkButton href="/login" variant="accent" size="lg">
-                Start free
+                Start automating
               </LinkButton>
-              <LinkButton href="/pricing" variant="secondary" size="lg">
-                See pricing
+              <LinkButton href="/dashboard/mailboxes" variant="secondary" size="lg">
+                Connect mailboxes
               </LinkButton>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-2">
+              {providers.map((name) => (
+                <span key={name} className="provider-chip pill">
+                  {name}
+                </span>
+              ))}
             </div>
           </div>
           <div className="hero-demo-wrap">
@@ -135,36 +157,87 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1120px] gap-4 px-6 py-14 lg:grid-cols-3">
-        {proofs.map((p) => (
-          <MotionCard key={p.k} className="scroll-rise saas-card p-8">
-            <p className="text-lg font-bold text-night">{p.k}</p>
-            <p className="mt-2 text-[16px] leading-relaxed text-ink-muted">{p.v}</p>
-          </MotionCard>
-        ))}
+      <section className="scroll-rise border-b border-ink/[0.06] bg-paper-elevated/70">
+        <div className="mx-auto grid max-w-[1120px] gap-8 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="section-label-accent">Multi-mailbox</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-night lg:text-4xl">
+              One workspace. Every inbox that matters.
+            </h2>
+            <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-muted">
+              Finance, sales, support, and founder inboxes can all live in ExtractPilot. Add as many IMAP accounts as
+              you need, label them, and keep extraction on the active mailbox.
+            </p>
+            <Link href="/dashboard/mailboxes" className="link-arrow mt-8">
+              Open mailbox manager <span aria-hidden>↗</span>
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { label: "AP inbox", meta: "ap@company.com · Gmail", active: true },
+              { label: "Orders", meta: "orders@company.com · Outlook", active: false },
+              { label: "Founder", meta: "you@company.com · IMAP", active: false },
+              { label: "Vendors", meta: "vendors@company.com · Zoho", active: false },
+            ].map((box) => (
+              <MotionCard
+                key={box.label}
+                className={`p-5 ${box.active ? "border-accent/35 bg-accent-soft/50" : "saas-card"}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-night">{box.label}</p>
+                  {box.active ? (
+                    <span className="rounded-md bg-moss/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-moss">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">Ready</span>
+                  )}
+                </div>
+                <p className="mt-2 text-[13px] text-ink-muted">{box.meta}</p>
+              </MotionCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1120px] px-6 py-16">
+        <div className="scroll-rise max-w-2xl">
+          <p className="section-label">Why teams switch</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-night">
+            Fully functional. Connected with anyone who emails you.
+          </h2>
+          <p className="mt-3 text-[16px] text-ink-muted">
+            ExtractPilot is not a demo toy — prompts, models, review, webhooks, and REST are production-ready.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          {outcomes.map((item) => (
+            <MotionCard key={item.title} className="scroll-rise saas-card p-8">
+              <h3 className="text-xl font-bold text-night">{item.title}</h3>
+              <p className="mt-3 text-[16px] leading-relaxed text-ink-muted">{item.body}</p>
+            </MotionCard>
+          ))}
+        </div>
       </section>
 
       <section className="scroll-rise mx-auto max-w-[1120px] px-6 pb-6">
         <p className="section-label">How it works</p>
         <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-night">
-          Three steps, same flow every time.
+          From messy inbox to structured workflow.
         </h2>
         <p className="mt-3 max-w-2xl text-[16px] text-ink-muted">
-          No jargon: connect mail → describe fields → get JSON you can trust.
+          Ten minutes to first live extraction. Then the same pipeline runs across every mailbox you connect.
         </p>
       </section>
 
       <section className="mx-auto grid max-w-[1120px] gap-4 px-6 pb-20 lg:grid-cols-3">
-        {steps.map((s) => (
+        {workflowSteps.map((s) => (
           <MotionCard key={s.n} className="scroll-rise saas-card flex flex-col p-8">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
               {s.n}
             </span>
             <h3 className="mt-4 text-xl font-bold text-night">{s.title}</h3>
             <p className="mt-3 flex-1 text-[16px] leading-relaxed text-ink-muted">{s.body}</p>
-            <Link href="/dashboard/workflow" className="link-arrow mt-8">
-              Open setup guide <span aria-hidden>↗</span>
-            </Link>
           </MotionCard>
         ))}
       </section>
@@ -173,10 +246,11 @@ export function LandingPage() {
         <div className="flex flex-col items-start justify-between gap-8 p-10 sm:p-12 lg:flex-row lg:items-center">
           <div>
             <p className="section-label !text-white/50">Next step</p>
-            <p className="mt-3 text-2xl font-bold text-white lg:text-3xl">Try it on your own mail in minutes.</p>
+            <p className="mt-3 text-2xl font-bold text-white lg:text-3xl">
+              Reclaim 10+ hours this week — start in 10 minutes.
+            </p>
             <p className="mt-3 max-w-md text-[17px] text-white/70">
-              Sign in, connect a mailbox, and run one extraction on the free tier. Upgrade only when you need more
-              volume.
+              Connect your mailboxes, save one schema, and run your first automated extract on the free tier.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -192,7 +266,7 @@ export function LandingPage() {
 
       <footer className="border-t border-ink/[0.06] px-6 py-8 text-[15px] text-ink-muted">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-4">
-          <span>ExtractPilot — structured data from email</span>
+          <span>ExtractPilot — automate inbox workflows across every mailbox</span>
           <div className="flex gap-5">
             <Link href="/privacy" className="hover:text-night">
               Privacy

@@ -44,7 +44,7 @@ export function InboxToJsonDemo({ className = "", animated = true }: InboxToJson
           {animated ? <span className="pill">live preview</span> : null}
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
-          Email on the left → structured fields on the right.
+          Any mailbox in → reviewable JSON out. Automate the copy-paste work.
         </p>
       </div>
 

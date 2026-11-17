@@ -11,9 +11,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "ExtractPilot — Inbox to structured records",
+  title: "ExtractPilot — Automate inbox workflows",
   description:
-    "Connect your mailbox, define the JSON you need, and extract fields from email and attachments with a reviewable pipeline.",
+    "Automate your workflows and save 10+ hours a week in just 10 minutes. Connect multiple mailboxes, extract structured JSON from anyone who emails you, and push clean data into your tools.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

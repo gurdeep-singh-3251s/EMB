@@ -16,6 +16,6 @@ App: http://localhost:3000
 
 ## Deploy
 
-Vercel — set `API_URL` and `NEXT_PUBLIC_API_URL` to your backend URL.
+Vercel — set only `API_URL` to your backend URL (e.g. `https://extractpilot-api.revilen.com`).
 
 See [docs/DEPLOY-SPLIT.md](./docs/DEPLOY-SPLIT.md).

@@ -82,9 +82,10 @@ export default function MailboxesPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <p className="section-label">Workspace</p>
-        <h1 className="mt-1.5 font-display text-2xl font-semibold text-ink">Mailboxes</h1>
+        <h1 className="mt-1.5 font-display text-2xl font-semibold text-ink">Connect multiple mailboxes</h1>
         <p className="mt-2 text-sm text-ink-muted">
-          Connect multiple IMAP accounts. Extraction uses the <strong>active</strong> mailbox.
+          Add Gmail, Outlook, Zoho, or any IMAP inbox — finance, sales, founder, vendors. Extraction always runs on
+          the <strong>active</strong> mailbox so you can automate every workflow from one place.
         </p>
       </div>
 

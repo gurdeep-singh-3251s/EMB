@@ -60,7 +60,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "50 emails / week",
       "10 extraction runs / day",
       "Up to 10 schema fields",
-      "Gmail, Outlook, Zoho & IMAP",
+      "Multiple mailboxes (Gmail, Outlook, IMAP…)",
       "Community support",
       "Fast model tier (Gemini Flash)",
     ],

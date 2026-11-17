@@ -84,10 +84,10 @@ export default function PricingPage() {
       <main className="mx-auto max-w-6xl px-6 py-14 lg:py-16">
         <div ref={headRefBinding} className="max-w-2xl">
           <p className="section-label-accent">Pricing</p>
-          <h1 className="page-title">Pay for how much mail you process.</h1>
+          <h1 className="page-title">Automate more inboxes as you grow.</h1>
           <p className="page-lede">
-            Every plan includes the same product: connect a mailbox, define your JSON fields, run extraction, and
-            export results. Higher tiers raise email limits and unlock stronger AI models.
+            Every plan includes multi-mailbox connections, schema extraction, review, and export. Higher tiers raise
+            email limits and unlock stronger AI models — so you keep saving hours every week.
           </p>
           <ol className="mt-6 list-decimal space-y-2 pl-5 text-[15px] text-ink-muted">
             <li>

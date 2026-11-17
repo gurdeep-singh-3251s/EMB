@@ -34,14 +34,18 @@ export default function DashboardOverviewPage() {
   const pipelineStep = !query ? 1 : !mailbox?.configured ? 2 : 3;
   const steps = [
     { done: !!query, label: "Write your extraction schema", step: 1 },
-    { done: mailbox?.configured, label: "Connect IMAP mailbox", step: 2 },
+    { done: mailbox?.configured, label: "Connect multiple mailboxes", step: 2 },
     { done: (stats?.completed ?? 0) > 0, label: "Confirm first results", step: 3 },
   ];
 
   const onboarding = [
     { done: !!query, label: "Describe what to extract (Prompt studio)", href: "/dashboard/prompts" },
-    { done: Boolean(mailbox?.configured), label: "Connect your work inbox", href: "/dashboard/mailboxes" },
-    { done: (stats?.completed ?? 0) > 0, label: "Run extraction and check results", href: "/dashboard/workflow?step=3" },
+    {
+      done: Boolean(mailbox?.configured),
+      label: "Connect your mailboxes (Gmail, Outlook, IMAP…)",
+      href: "/dashboard/mailboxes",
+    },
+    { done: (stats?.completed ?? 0) > 0, label: "Run extract and reclaim hours this week", href: "/dashboard/workflow?step=3" },
   ];
 
   return (
@@ -52,9 +56,10 @@ export default function DashboardOverviewPage() {
       <div data-reveal className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-label">Today</p>
-          <h1 className="page-title !mt-1.5">Your inbox at a glance</h1>
+          <h1 className="page-title !mt-1.5">Automate workflows across every inbox</h1>
           <p className="page-lede">
-            Counts below are only from your workspace. New here? Finish the checklist — it takes about 15 minutes.
+            Connect multiple mailboxes, extract structured data from anyone who emails you, and keep ops moving —
+            without copying fields by hand. First setup takes about 10 minutes.
           </p>
         </div>
         <LinkButton href={`/dashboard/workflow?step=${pipelineStep}`} variant="accent">
