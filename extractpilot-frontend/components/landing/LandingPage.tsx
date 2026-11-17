@@ -137,10 +137,10 @@ export function LandingPage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <LinkButton href="/login" variant="accent" size="lg">
-                Start automating
+                Start free — 10 minutes
               </LinkButton>
-              <LinkButton href="/dashboard/mailboxes" variant="secondary" size="lg">
-                Connect mailboxes
+              <LinkButton href="/pricing" variant="secondary" size="lg">
+                See pricing
               </LinkButton>
             </div>
             <div className="mt-10 flex flex-wrap gap-2">

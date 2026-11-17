@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { restClient } from "@/lib/restClient";
 import { emailApiProvider } from "@/apiProvider/email/emailApiProvider";
 import { Panel } from "@/components/ui/Panel";
 import { LinkButton } from "@/components/ui/LinkButton";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 
 export default function DashboardOverviewPage() {
@@ -25,101 +23,117 @@ export default function DashboardOverviewPage() {
       ]);
 
       if (mb.success) setMailbox({ configured: mb.data.configured, user: mb.data.user });
-      if (uq.success && uq.data) setQuery(uq.data.userQuery.slice(0, 80));
+      if (uq.success && uq.data) setQuery(uq.data.userQuery.slice(0, 100));
       if (emailStats.success) setStats(emailStats.data);
       if (results.success) setRecent(results.data.total);
     })();
   }, []);
 
+  const ready = Boolean(query && mailbox?.configured);
   const pipelineStep = !query ? 1 : !mailbox?.configured ? 2 : 3;
-  const steps = [
-    { done: !!query, label: "Write your extraction schema", step: 1 },
-    { done: mailbox?.configured, label: "Connect multiple mailboxes", step: 2 },
-    { done: (stats?.completed ?? 0) > 0, label: "Confirm first results", step: 3 },
-  ];
 
   const onboarding = [
-    { done: !!query, label: "Describe what to extract (Prompt studio)", href: "/dashboard/prompts" },
+    {
+      done: !!query,
+      label: "Write what to extract",
+      detail: "Save a prompt and JSON schema in Prompt studio.",
+      href: "/dashboard/prompts",
+    },
     {
       done: Boolean(mailbox?.configured),
-      label: "Connect your mailboxes (Gmail, Outlook, IMAP…)",
+      label: "Connect a mailbox",
+      detail: "Gmail, Outlook, or any IMAP inbox. Add more later.",
       href: "/dashboard/mailboxes",
     },
-    { done: (stats?.completed ?? 0) > 0, label: "Run extract and reclaim hours this week", href: "/dashboard/workflow?step=3" },
+    {
+      done: (stats?.completed ?? 0) > 0,
+      label: "Run your first extraction",
+      detail: "Pick a short lookback, extract, then review results.",
+      href: "/dashboard/workflow?step=3",
+    },
   ];
 
   return (
-    <div className="space-y-6">
-      <div data-reveal>
-        <OnboardingChecklist steps={onboarding} />
-      </div>
+    <div className="mx-auto max-w-5xl space-y-6">
       <div data-reveal className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="section-label">Today</p>
-          <h1 className="page-title !mt-1.5">Automate workflows across every inbox</h1>
+          <p className="section-label">Home</p>
+          <h1 className="page-title !mt-1.5">{ready ? "Your workspace" : "Welcome — let's set you up"}</h1>
           <p className="page-lede">
-            Connect multiple mailboxes, extract structured data from anyone who emails you, and keep ops moving —
-            without copying fields by hand. First setup takes about 10 minutes.
+            {ready
+              ? "Extract from any connected mailbox, review results, and keep ops moving without copy-paste."
+              : "Three clear steps. When you finish, ExtractPilot can pull structured data from your inbox."}
           </p>
         </div>
         <LinkButton href={`/dashboard/workflow?step=${pipelineStep}`} variant="accent">
-          {stats?.completed ? "Open pipeline" : "Continue setup"}
+          {ready ? "Run extraction" : "Start setup"}
         </LinkButton>
+      </div>
+
+      <div data-reveal>
+        <OnboardingChecklist steps={onboarding} />
       </div>
 
       <div data-reveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Ingested", stats?.total ?? "—"],
+          ["Emails ingested", stats?.total ?? "—"],
           ["Extracted", stats?.completed ?? "—"],
-          ["Needs attention", stats?.failed ?? "—"],
-          ["Rows in results", recent],
+          ["Needs review", stats?.failed ?? "—"],
+          ["Result rows", recent],
         ].map(([label, value]) => (
-          <div key={String(label)} className="ledger-panel-interactive p-4">
+          <div key={String(label)} className="saas-card p-5">
             <p className="section-label">{label}</p>
-            <p className="metric-value mt-1.5">{value}</p>
+            <p className="metric-value mt-2 text-[1.75rem]">{value}</p>
           </div>
         ))}
       </div>
 
       <div data-reveal className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Checklist" description="Same three steps as the pipeline — no duplicate wizards">
-          <ul className="space-y-2">
-            {steps.map((step) => (
-              <li key={step.label}>
-                <Link
-                  href={`/dashboard/workflow?step=${step.step}`}
-                  className="flex items-center justify-between rounded-lg border border-ink/10 px-3.5 py-2.5 transition hover:border-ink/20 hover:bg-paper-elevated"
-                >
-                  <span className="text-sm font-medium text-ink">{step.label}</span>
-                  <StatusBadge status={step.done ? "completed" : "pending"} />
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <Panel title="Current setup" description="What the pipeline will use next time you extract">
+          <dl className="space-y-4 text-[15px]">
+            <div>
+              <dt className="text-ink-muted">Active prompt</dt>
+              <dd className="mt-1 font-medium text-night">
+                {query ? (
+                  <>
+                    {query}
+                    {query.length >= 100 ? "…" : ""}
+                  </>
+                ) : (
+                  <span className="font-normal text-ink-muted">Not set yet</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-ink-muted">Active mailbox</dt>
+              <dd className="mt-1 font-medium text-night">
+                {mailbox?.configured ? mailbox.user : <span className="font-normal text-ink-muted">Not connected</span>}
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <LinkButton href="/dashboard/prompts" variant="secondary" size="sm">
+              Edit prompt
+            </LinkButton>
+            <LinkButton href="/dashboard/mailboxes" variant="secondary" size="sm">
+              Manage mailboxes
+            </LinkButton>
+          </div>
         </Panel>
 
-        <Panel title="Workspace snapshot">
-          {query ? (
-            <p className="rounded-lg border border-ink/10 bg-paper-elevated p-3 text-sm text-ink-muted">
-              <span className="font-semibold text-ink">Active schema intent:</span> {query}
-              {query.length >= 80 ? "…" : ""}
-            </p>
-          ) : (
-            <p className="text-sm text-ink-muted">No schema saved yet — start with step 1 in the pipeline.</p>
-          )}
-          {mailbox?.configured ? (
-            <p className="mt-2 text-sm text-ink-muted">
-              <span className="font-semibold text-ink">Mailbox:</span> {mailbox.user}
-            </p>
-          ) : (
-            <p className="mt-2 text-sm text-ink-muted">No mailbox connected.</p>
-          )}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <LinkButton href="/dashboard/results" variant="secondary" size="sm">
-              Results table
+        <Panel title="Quick actions" description="The only places most people need day to day">
+          <div className="grid gap-2">
+            <LinkButton href="/dashboard/workflow?step=3" variant="primary" className="!justify-start">
+              Extract from mailbox
             </LinkButton>
-            <LinkButton href="/dashboard/developers" variant="secondary" size="sm">
-              API guide
+            <LinkButton href="/dashboard/results" variant="secondary" className="!justify-start">
+              View results
+            </LinkButton>
+            <LinkButton href="/dashboard/review" variant="secondary" className="!justify-start">
+              Review failures / partials
+            </LinkButton>
+            <LinkButton href="/dashboard/settings" variant="ghost" className="!justify-start">
+              Webhooks & settings
             </LinkButton>
           </div>
         </Panel>
