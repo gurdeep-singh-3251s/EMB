@@ -153,10 +153,10 @@ export function LandingPage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <LinkButton href={startHref} variant="accent" size="lg">
-                {signedIn ? "Open workspace" : "Start for free"}
+                {signedIn ? "Open workspace" : "Start free"}
               </LinkButton>
               <LinkButton href={docsHref} variant="secondary" size="lg">
-                See Docs — how to integrate
+                See Docs
               </LinkButton>
             </div>
             <div className="mt-10 flex flex-wrap gap-2">
@@ -266,7 +266,7 @@ export function LandingPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <LinkButton href={startHref} variant="accent" size="lg">
-              {signedIn ? "Open workspace" : "Start for free"}
+              {signedIn ? "Open workspace" : "Start free"}
             </LinkButton>
             <LinkButton href={docsHref} variant="inverse" size="lg">
               See Docs

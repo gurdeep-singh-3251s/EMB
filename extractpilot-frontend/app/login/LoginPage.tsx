@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useLayoutEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import gsap from "gsap";
 import { getGoogleLoginUrl } from "@/lib/authSession";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
-import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -14,68 +15,150 @@ const ERROR_MESSAGES: Record<string, string> = {
   session: "Signed in with Google but the session could not be verified. Check API_URL on Vercel.",
 };
 
+const AFTER_SIGNIN = [
+  { n: "01", title: "Connect mailboxes", body: "ISA, agents, TC — multiple Gmails in one workspace." },
+  { n: "02", title: "Load RE prompts", body: "Buyer leads, showings, offers, escrow — ready to run." },
+  { n: "03", title: "Extract & review", body: "Confidence scores before anything hits your CRM." },
+];
+
 export default function LoginPage() {
   const params = useSearchParams();
   const errorKey = params.get("error");
   const next = params.get("next") ?? "/dashboard";
   const loginUrl = `${getGoogleLoginUrl()}?state=${encodeURIComponent(next)}`;
+  const root = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const ctx = gsap.context(() => {
+      gsap.from(".login-brand > *", { opacity: 0, y: 18, duration: 0.7, stagger: 0.08, ease: "power3.out" });
+      gsap.from(".login-panel", { opacity: 0, x: 28, duration: 0.85, ease: "power3.out", delay: 0.12 });
+      gsap.from(".login-step", { opacity: 0, y: 14, duration: 0.55, stagger: 0.08, ease: "power2.out", delay: 0.35 });
+      gsap.to(".login-orb", {
+        y: -18,
+        x: 12,
+        duration: 6,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.6,
+      });
+    }, el);
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-paper lg:grid lg:min-h-[100dvh] lg:grid-cols-2">
-      <aside className="hidden border-r border-ink/[0.06] bg-paper-elevated/40 lg:flex lg:flex-col lg:justify-center lg:px-12 lg:py-12 xl:px-16">
-        <p className="section-label-accent">Inbox automation</p>
-        <h1 className="mt-4 max-w-md text-[1.75rem] font-bold leading-snug text-night xl:text-3xl">
-          Save 10+ hours a week — start in about 10 minutes.
-        </h1>
-        <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-muted">
-          Connect multiple mailboxes, extract structured JSON from anyone who emails you, and keep every workspace
-          private to your Google account.
-        </p>
-        <div className="mt-8 w-full max-w-lg">
-          <InboxToJsonDemo animated={false} />
-        </div>
-      </aside>
+    <div ref={root} className="relative min-h-[100dvh] overflow-hidden bg-paper">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="login-orb absolute -left-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-accent/20 blur-3xl" />
+        <div className="login-orb absolute -bottom-32 right-0 h-[26rem] w-[26rem] rounded-full bg-moss/15 blur-3xl" />
+        <div className="login-orb absolute left-1/3 top-1/3 h-64 w-64 rounded-full bg-accent-soft blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.04) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+          }}
+        />
+      </div>
 
-      <main className="relative flex min-h-[100dvh] items-center justify-center px-6 py-12 sm:px-8">
-        <div className="absolute right-6 top-6">
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <Link href="/" className="flex items-center gap-3">
+          <LogoMark size="sm" />
+          <Wordmark subtitle="Sign in" />
+        </Link>
+        <div className="flex items-center gap-2">
           <ThemeToggle />
+          <Link href="/docs" className="hidden text-[14px] font-semibold text-ink-muted transition hover:text-night sm:inline">
+            See Docs
+          </Link>
         </div>
-        <div className="w-full max-w-[420px]">
-          <div className="saas-card p-8 shadow-ledger-lg sm:p-9">
-            <div className="mb-8 flex items-center gap-3">
+      </header>
+
+      <main className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-10">
+        <section className="login-brand">
+          <p className="section-label-accent">Welcome to ExtractPilot</p>
+          <h1 className="mt-4 max-w-xl text-[2.4rem] font-extrabold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
+            One click. Your brokerage workspace is ready.
+          </h1>
+          <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-ink-muted sm:text-[18px]">
+            Continue with Google — we create a private workspace for managers and agents. No card. No setup call
+            required.
+          </p>
+
+          <div className="mt-10 grid gap-3 sm:grid-cols-3">
+            {AFTER_SIGNIN.map((step) => (
+              <article key={step.n} className="login-step saas-card p-4">
+                <p className="text-[11px] font-bold tracking-[0.16em] text-accent">{step.n}</p>
+                <p className="mt-2 text-[15px] font-bold text-night">{step.title}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-8 text-[14px] text-ink-muted">
+            Prefer the API first?{" "}
+            <Link href="/docs" className="font-semibold text-accent hover:text-accent-light">
+              Read the docs
+            </Link>
+          </p>
+        </section>
+
+        <section className="login-panel">
+          <div className="relative overflow-hidden rounded-[2rem] border border-ink/[0.08] bg-paper-elevated/90 p-8 shadow-ledger-lg backdrop-blur-xl sm:p-10">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-accent-light to-moss" aria-hidden />
+            <div className="flex items-center gap-3">
               <LogoMark />
-              <Wordmark subtitle="Sign in to continue" />
+              <div>
+                <p className="text-lg font-bold tracking-tight text-night">Start free</p>
+                <p className="text-[13px] text-ink-muted">Google workspace sign-in</p>
+              </div>
             </div>
 
-            <p className="mb-6 text-[15px] leading-relaxed text-ink-muted lg:hidden">
-              Automate inbox workflows across multiple mailboxes and turn email from anyone into structured JSON.
-            </p>
-
             {errorKey ? (
-              <p className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[15px] text-rose-900">
+              <p className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[15px] text-rose-900">
                 {ERROR_MESSAGES[errorKey] ?? "Sign-in failed. Please try again."}
               </p>
             ) : null}
 
             <a
               href={loginUrl}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-ink/10 bg-paper px-4 py-4 text-[15px] font-semibold text-night transition hover:border-ink/20 hover:bg-paper-elevated"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-inverse px-5 py-4 text-[16px] font-semibold text-inverse-fg transition hover:bg-inverse/90 active:scale-[0.99]"
             >
               <GoogleGlyph />
               Continue with Google
             </a>
 
-            <p className="mt-6 text-center text-[14px] leading-relaxed text-ink-muted">
-              First time? We create your workspace automatically — no credit card.
-            </p>
+            <div className="mt-6 space-y-3 rounded-2xl border border-ink/[0.06] bg-paper px-4 py-4 text-[14px] text-ink-muted">
+              <p className="flex gap-2">
+                <span className="text-accent" aria-hidden>
+                  ✓
+                </span>
+                Free tier for live brokerage demos
+              </p>
+              <p className="flex gap-2">
+                <span className="text-accent" aria-hidden>
+                  ✓
+                </span>
+                Multi-Gmail + real-estate prompts included
+              </p>
+              <p className="flex gap-2">
+                <span className="text-accent" aria-hidden>
+                  ✓
+                </span>
+                Your data stays in your private workspace
+              </p>
+            </div>
 
-            <p className="mt-6 text-center text-[15px]">
-              <Link href="/" className="font-semibold text-accent hover:text-accent-light">
+            <p className="mt-8 text-center text-[14px]">
+              <Link href="/" className="font-semibold text-ink-muted transition hover:text-accent">
                 ← Back to home
               </Link>
             </p>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
