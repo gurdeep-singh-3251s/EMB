@@ -1,18 +1,18 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useLayoutEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import gsap from "gsap";
 import { ExtractionSetupStep } from "@/components/pipeline/ExtractionSetupStep";
 import { MailboxConnectStep } from "@/components/pipeline/MailboxConnectStep";
 import { RunExtractionStep } from "@/components/pipeline/RunExtractionStep";
-import { Panel } from "@/components/ui/Panel";
 import { GuardedLink } from "@/components/ui/GuardedLink";
 import { useExtractionRun } from "@/contexts/ExtractionRunContext";
 
 const STEPS = [
-  { id: 1, title: "Write requirements" },
-  { id: 2, title: "Connect mailboxes" },
-  { id: 3, title: "Extract Now" },
+  { id: 1, title: "Requirements" },
+  { id: 2, title: "Mailboxes" },
+  { id: 3, title: "Extract" },
 ];
 
 function WorkflowContent() {
@@ -20,57 +20,90 @@ function WorkflowContent() {
   const router = useRouter();
   const { isRunning } = useExtractionRun();
   const step = Math.min(3, Math.max(1, Number(params.get("step") ?? "1") || 1));
+  const rootRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   function goToStep(next: number) {
     router.push(`/dashboard/workflow?step=${next}`);
   }
 
-  return (
-    <div className="space-y-5">
-      <div className="animate-fade-in-up">
-        <p className="section-label">Get started</p>
-        <h1 className="mt-1.5 font-display text-2xl font-bold text-night lg:text-3xl">
-          Get set up in three steps
-        </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-ink-muted">
-          Write requirements, connect mailboxes, then Extract Now.
-        </p>
-      </div>
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const ctx = gsap.context(() => {
+      gsap.from(".wf-chrome", {
+        opacity: 0,
+        y: 10,
+        duration: 0.4,
+        stagger: 0.05,
+        ease: "power3.out",
+      });
+    }, root);
+    return () => ctx.revert();
+  }, []);
 
-      <Panel className="animate-fade-in-up stagger-1">
-        <ol className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-          {STEPS.map((s) => {
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        stage,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" },
+      );
+    }, stage);
+    return () => ctx.revert();
+  }, [step]);
+
+  return (
+    <div ref={rootRef} className="mx-auto flex max-w-6xl flex-col gap-3 pb-2">
+      <div className="wf-chrome flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="section-label">Get started</p>
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-night sm:text-2xl">
+            Setup in 3 steps
+          </h1>
+        </div>
+        <ol className="flex items-center gap-1 rounded-2xl border border-ink/[0.08] bg-paper-elevated p-1">
+          {STEPS.map((s, i) => {
             const active = step === s.id;
             const done = step > s.id;
             return (
-              <li key={s.id}>
+              <li key={s.id} className="flex items-center">
+                {i > 0 ? <span className="mx-0.5 hidden h-px w-4 bg-ink/15 sm:block" aria-hidden /> : null}
                 <GuardedLink
                   href={`/dashboard/workflow?step=${s.id}`}
-                  className={`group flex items-center gap-2 text-sm font-semibold transition-colors duration-200 ${
-                    active ? "text-blue-700" : isRunning ? "text-slate-400" : "text-slate-600 hover:text-slate-950"
+                  className={`inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-[13px] font-semibold transition ${
+                    active
+                      ? "bg-inverse text-inverse-fg"
+                      : done
+                        ? "text-accent hover:bg-accent-soft"
+                        : isRunning
+                          ? "pointer-events-none text-ink-faint"
+                          : "text-ink-muted hover:bg-ink/[0.04] hover:text-night"
                   }`}
                   aria-disabled={isRunning && !active}
                 >
                   <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs transition-all duration-300 ease-premium ${
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                       active
-                        ? "bg-slate-950 text-white shadow-sm scale-105"
+                        ? "bg-paper/15 text-inverse-fg"
                         : done
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-slate-100 group-hover:bg-slate-200"
+                          ? "bg-accent/15 text-accent"
+                          : "bg-ink/[0.06] text-ink-muted"
                     }`}
                   >
                     {done ? "✓" : s.id}
                   </span>
-                  {s.title}
+                  <span className="hidden sm:inline">{s.title}</span>
                 </GuardedLink>
               </li>
             );
           })}
         </ol>
-      </Panel>
+      </div>
 
-      <div key={step} className="animate-fade-in-up">
+      <div ref={stageRef} className="wf-chrome min-h-0">
         {step === 1 ? (
           <ExtractionSetupStep onComplete={() => goToStep(2)} />
         ) : step === 2 ? (
@@ -80,33 +113,35 @@ function WorkflowContent() {
         )}
       </div>
 
-      <div className="flex justify-between border-t border-slate-200 pt-4 animate-fade-in-up stagger-2">
-        {step > 1 ? (
-          <GuardedLink
-            href={`/dashboard/workflow?step=${step - 1}`}
-            className="text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
-          >
-            ← Previous
-          </GuardedLink>
-        ) : (
-          <span />
-        )}
-        {step < 3 ? (
-          <GuardedLink
-            href={`/dashboard/workflow?step=${step + 1}`}
-            className="text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800"
-          >
-            Next →
-          </GuardedLink>
-        ) : (
-          <GuardedLink
-            href="/dashboard/results"
-            className="text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800"
-          >
-            View results →
-          </GuardedLink>
-        )}
-      </div>
+      {step !== 1 ? (
+        <div className="wf-chrome flex items-center justify-between border-t border-ink/[0.07] pt-3">
+          {step > 1 ? (
+            <GuardedLink
+              href={`/dashboard/workflow?step=${step - 1}`}
+              className="text-[13px] font-semibold text-ink-muted transition hover:text-night"
+            >
+              ← Previous
+            </GuardedLink>
+          ) : (
+            <span />
+          )}
+          {step < 3 ? (
+            <GuardedLink
+              href={`/dashboard/workflow?step=${step + 1}`}
+              className="text-[13px] font-semibold text-accent transition hover:text-accent-light"
+            >
+              Next →
+            </GuardedLink>
+          ) : (
+            <GuardedLink
+              href="/dashboard/results"
+              className="text-[13px] font-semibold text-accent transition hover:text-accent-light"
+            >
+              View results →
+            </GuardedLink>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -115,9 +150,9 @@ export default function WorkflowPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
-          Loading pipeline…
+        <div className="flex items-center gap-2 text-sm text-ink-muted">
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-ink/20 border-t-accent" />
+          Loading…
         </div>
       }
     >

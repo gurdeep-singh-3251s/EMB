@@ -49,9 +49,11 @@ export function schemaToRows(schema: Record<string, FieldSpec>): SchemaRow[] {
 export function SchemaBuilder({
   rows,
   onChange,
+  compact = false,
 }: {
   rows: SchemaRow[];
   onChange: (rows: SchemaRow[]) => void;
+  compact?: boolean;
 }) {
   function updateRow(index: number, patch: Partial<SchemaRow>) {
     const next = [...rows];
@@ -65,21 +67,32 @@ export function SchemaBuilder({
     onChange(next);
   }
 
+  const inputClass = compact
+    ? "input-field !rounded-lg !px-2.5 !py-2 text-[13px]"
+    : "input-field";
+
   return (
-    <div className="space-y-3">
+    <div className={compact ? "space-y-2" : "space-y-3"}>
+      {rows.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-ink/15 px-3 py-4 text-[13px] text-ink-muted">
+          No fields yet — Enhance with AI, pick a template, or add one below.
+        </p>
+      ) : null}
       {rows.map((row, i) => (
         <div
           key={row.id}
-          className="grid gap-3 rounded-2xl border border-ink/[0.08] bg-paper p-4 md:grid-cols-[1.2fr_1fr_1.5fr_auto]"
+          className={`grid gap-2 border border-ink/[0.08] bg-paper md:grid-cols-[1.1fr_0.85fr_1.35fr_auto] ${
+            compact ? "rounded-xl p-2" : "rounded-2xl p-4 gap-3"
+          }`}
         >
           <input
-            className="input-field"
+            className={inputClass}
             placeholder="field_name"
             value={row.key}
             onChange={(e) => updateRow(i, { key: e.target.value })}
           />
           <select
-            className="input-field"
+            className={inputClass}
             value={row.spec.type}
             onChange={(e) => updateSpec(i, { type: e.target.value as FieldSpec["type"] })}
           >
@@ -90,14 +103,15 @@ export function SchemaBuilder({
             ))}
           </select>
           <input
-            className="input-field"
-            placeholder="Description for the AI"
+            className={inputClass}
+            placeholder="Description"
             value={row.spec.description ?? ""}
             onChange={(e) => updateSpec(i, { description: e.target.value })}
           />
           <Button
             variant="ghost"
             size="sm"
+            className={compact ? "!h-9 !px-2 text-[12px]" : undefined}
             onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
           >
             Remove

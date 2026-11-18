@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { restClient, type FieldSpec } from "@/lib/restClient";
-import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import {
   SchemaBuilder,
@@ -32,6 +33,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
   const historyRef = useRef<Snapshot[]>([]);
   const indexRef = useRef(-1);
   const skipHistoryRef = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -70,6 +72,38 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
     },
     [syncHistoryFlags],
   );
+
+  useLayoutEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const root = rootRef.current;
+    if (!root) return;
+    const ctx = gsap.context(() => {
+      gsap.from(".setup-pane", {
+        opacity: 0,
+        y: 12,
+        duration: 0.4,
+        stagger: 0.06,
+        ease: "power3.out",
+      });
+      gsap.from(".setup-actionbar", {
+        opacity: 0,
+        y: 16,
+        duration: 0.45,
+        delay: 0.12,
+        ease: "power3.out",
+      });
+      gsap.utils.toArray<HTMLElement>(".setup-scroll-rise").forEach((el) => {
+        gsap.from(el, {
+          scrollTrigger: { trigger: el, start: "top 92%", toggleActions: "play none none none" },
+          opacity: 0.35,
+          y: 10,
+          duration: 0.35,
+          ease: "power2.out",
+        });
+      });
+    }, root);
+    return () => ctx.revert();
+  }, []);
 
   useEffect(() => {
     void restClient.userQuery.current().then((res) => {
@@ -116,14 +150,14 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
   }) {
     setQuery(payload.userQuery);
     setRows(schemaToRows(payload.outputSchema));
-    setMessage("Template loaded — edit freely, then save & continue.");
+    setMessage("Template loaded — review fields, then continue.");
     setError(null);
     setRationale(null);
   }
 
   async function enhanceWithAi() {
     if (!query.trim()) {
-      setError("Write your requirements in plain language first.");
+      setError("Write your requirements first.");
       return;
     }
     setEnhancing(true);
@@ -145,7 +179,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
       setRows(schemaToRows(normalized));
     }
     setRationale(res.data.rationale ?? `Enhanced with ${res.data.modelUsed}`);
-    setMessage("Requirements and fields updated — review, then save.");
+    setMessage("Updated — review, then Save & continue.");
   }
 
   async function save() {
@@ -158,7 +192,6 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
     setMessage(null);
     let outputSchema = rowsToSchema(rows);
     if (Object.keys(outputSchema).length === 0) {
-      // Soft default so first-time users can save after writing NL only
       outputSchema = {
         summary: { type: "string", nullable: true, description: "Short summary of the email ask" },
         contact_name: { type: "string", nullable: true, description: "Sender or contact name" },
@@ -172,74 +205,84 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
       setError(res.message);
       return;
     }
-    setMessage("Saved and activated. Next: connect your mailboxes.");
+    setMessage("Saved. Next: connect mailboxes.");
     onComplete?.();
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div ref={rootRef} className="space-y-3">
+      <div className="setup-pane flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="section-label-accent">Step 1</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-night">Write down your requirements</h2>
-          <p className="mt-1 max-w-2xl text-[15px] text-ink-muted">
-            Describe what you want from each email in plain language. Enhance with AI to refine the text and fields.
-          </p>
+          <h2 className="text-base font-bold text-night sm:text-lg">1. Write requirements</h2>
+          <p className="text-[13px] text-ink-muted">Plain language in → fields out. Use Enhance if you want help.</p>
         </div>
         <Button variant="secondary" size="sm" onClick={() => setTemplatesOpen(true)}>
           See templates
         </Button>
       </div>
 
-      <Panel title="Your requirements" description="Natural language — start typing">
-        <div className="relative">
+      <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
+        <section className="setup-pane saas-card flex flex-col p-3.5 sm:p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[13px] font-semibold text-night">Requirements</p>
+              <p className="text-[12px] text-ink-muted">Natural language</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <IconButton label="Undo" disabled={!canUndo || enhancing} onClick={undo}>
+                <UndoIcon />
+              </IconButton>
+              <IconButton label="Redo" disabled={!canRedo || enhancing} onClick={redo}>
+                <RedoIcon />
+              </IconButton>
+              <IconButton
+                label={enhancing ? "Enhancing…" : "Enhance with AI"}
+                disabled={enhancing || loading || !query.trim()}
+                onClick={() => void enhanceWithAi()}
+                accent
+              >
+                {enhancing ? <SpinnerIcon /> : <SparkleIcon />}
+              </IconButton>
+            </div>
+          </div>
           <textarea
-            className="input-field min-h-[11rem] resize-y pb-14 pr-14 text-[15px] leading-relaxed"
+            className="input-field min-h-[9.5rem] flex-1 resize-y !rounded-xl !px-3 !py-2.5 text-[14px] leading-relaxed lg:min-h-[12rem]"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={loading || enhancing}
-            placeholder="Example: Pull contact name, company, and deal amount from inbound sales emails. Ignore newsletters."
+            placeholder="e.g. Pull contact name, company, and amount from inbound sales emails. Ignore newsletters."
           />
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
-            <IconButton label="Undo" disabled={!canUndo || enhancing} onClick={undo}>
-              <UndoIcon />
-            </IconButton>
-            <IconButton label="Redo" disabled={!canRedo || enhancing} onClick={redo}>
-              <RedoIcon />
-            </IconButton>
-            <IconButton
-              label={enhancing ? "Enhancing…" : "Enhance with AI"}
-              disabled={enhancing || loading || !query.trim()}
-              onClick={() => void enhanceWithAi()}
-              accent
-            >
-              {enhancing ? <SpinnerIcon /> : <SparkleIcon />}
-            </IconButton>
+          {rationale ? <p className="mt-2 text-[12px] text-ink-muted line-clamp-2">{rationale}</p> : null}
+        </section>
+
+        <section className="setup-pane setup-scroll-rise saas-card flex flex-col p-3.5 sm:p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[13px] font-semibold text-night">Output fields</p>
+              <p className="text-[12px] text-ink-muted">
+                {rows.length} field{rows.length === 1 ? "" : "s"} · enhance can fill these
+              </p>
+            </div>
           </div>
-        </div>
-        {rationale ? <p className="mt-3 text-[13px] text-ink-muted">{rationale}</p> : null}
-      </Panel>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-0.5 lg:max-h-[16.5rem]">
+            {loading ? (
+              <p className="text-[13px] text-ink-muted">Loading…</p>
+            ) : (
+              <SchemaBuilder rows={rows} onChange={setRows} compact />
+            )}
+          </div>
+        </section>
+      </div>
 
-      <Panel
-        title="Output fields"
-        description="What the AI should return as JSON. Enhance with AI can fill these for you."
-      >
-        {loading ? (
-          <p className="text-sm text-ink-muted">Loading…</p>
-        ) : (
-          <SchemaBuilder rows={rows} onChange={setRows} />
-        )}
-      </Panel>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="accent" onClick={() => void save()} disabled={saving || loading}>
-          {saving ? "Saving…" : "Save & continue"}
+      <div className="setup-actionbar sticky bottom-2 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-ink/[0.08] bg-paper-elevated/95 px-3 py-2.5 shadow-ledger backdrop-blur-md">
+        <Button variant="accent" size="sm" onClick={() => void save()} disabled={saving || loading}>
+          {saving ? "Saving…" : "Save & continue →"}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setTemplatesOpen(true)}>
-          Not sure? See templates
+          Templates
         </Button>
-        {message ? <p className="text-sm font-medium text-moss">{message}</p> : null}
-        {error ? <p className="text-sm font-medium text-rose-700">{error}</p> : null}
+        {message ? <p className="text-[12px] font-medium text-moss">{message}</p> : null}
+        {error ? <p className="text-[12px] font-medium text-rose-700">{error}</p> : null}
       </div>
 
       <TemplatesManager
@@ -262,7 +305,7 @@ function IconButton({
   label: string;
   disabled?: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   accent?: boolean;
 }) {
   return (
@@ -272,10 +315,10 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border transition disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:cursor-not-allowed disabled:opacity-40 ${
         accent
-          ? "border-accent/30 bg-accent text-white shadow-sm hover:bg-accent-light"
-          : "border-ink/10 bg-paper-elevated text-night hover:border-ink/20 hover:bg-paper"
+          ? "border-accent/30 bg-accent text-white hover:bg-accent-light"
+          : "border-ink/10 bg-paper text-night hover:border-ink/20"
       }`}
     >
       {children}
@@ -285,7 +328,7 @@ function IconButton({
 
 function SparkleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M12 3l1.2 4.8L18 9l-4.8 1.2L12 15l-1.2-4.8L6 9l4.8-1.2L12 3z" />
       <path d="M18.5 14.5l.6 2.4 2.4.6-2.4.6-.6 2.4-.6-2.4-2.4-.6 2.4-.6.6-2.4z" />
     </svg>
@@ -294,7 +337,7 @@ function SparkleIcon() {
 
 function UndoIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M9 14L4 9l5-5" />
       <path d="M4 9h10a6 6 0 110 12h-1" />
     </svg>
@@ -303,7 +346,7 @@ function UndoIcon() {
 
 function RedoIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M15 14l5-5-5-5" />
       <path d="M20 9H10a6 6 0 100 12h1" />
     </svg>
@@ -311,7 +354,5 @@ function RedoIcon() {
 }
 
 function SpinnerIcon() {
-  return (
-    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-  );
+  return <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
 }

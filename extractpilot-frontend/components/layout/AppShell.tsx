@@ -161,7 +161,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main ref={mainRef} className="px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
+        <main
+          ref={mainRef}
+          className={`px-4 sm:px-6 lg:px-8 ${
+            pathname.startsWith("/dashboard/workflow") ? "py-4 lg:py-5" : "py-5 lg:py-7"
+          }`}
+        >
           <Stagger selector="[data-reveal]">{children}</Stagger>
         </main>
       </div>
