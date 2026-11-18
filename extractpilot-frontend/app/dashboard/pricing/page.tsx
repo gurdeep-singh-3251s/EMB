@@ -189,7 +189,7 @@ export default function DashboardPricingPage() {
               ))}
             </ul>
             {freePlan.id === activePlanId ? (
-              <p className="mt-8 text-center text-[13px] font-medium text-ink-muted">You&apos;re on Starter</p>
+              <p className="mt-8 text-center text-[13px] font-medium text-ink-muted">You&apos;re on {freePlan.name}</p>
             ) : (
               <LinkButton href="/dashboard/workflow?step=1" variant="secondary" className="mt-8 w-full">
                 Continue free setup

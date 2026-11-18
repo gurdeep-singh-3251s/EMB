@@ -21,7 +21,7 @@ const display = localFont({
 export const metadata: Metadata = {
   title: "ExtractPilot — Automate your email workflow",
   description:
-    "For anyone drowning in email: connect mailboxes, describe what you need, extract structured data with 50+ AI models, and push results into the tools you already use.",
+    "For anyone drowning in email: connect mailboxes, describe what you need, extract structured data with current models like GPT and Sonnet, and push results into the tools you already use.",
 };
 
 const themeInitScript = `

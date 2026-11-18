@@ -50,8 +50,8 @@ const workflowSteps = [
   },
   {
     n: "03",
-    title: "Pick from 50+ AI models",
-    body: "Choose classify + extract models by plan. If a model is unavailable, ExtractPilot falls back automatically.",
+    title: "Use current models",
+    body: "Pick GPT, Sonnet, Fable, and the other current models on your plan. If one is unavailable, ExtractPilot falls back automatically.",
   },
 ];
 
@@ -61,8 +61,8 @@ const outcomes = [
     body: "Whether you get dozens or hundreds of emails a day, automate the reading and copy-paste work.",
   },
   {
-    title: "1,000 emails / week on Team",
-    body: "Enough volume for a busy shared inbox — with 20+ AI models and multi-mailbox workspaces.",
+    title: "Cron jobs on Standard",
+    body: "Schedule extraction, connect Slack, webhooks, and CRM, and get a summary with the fields.",
   },
   {
     title: "Confidence you can trust",
@@ -188,7 +188,7 @@ export function LandingPage() {
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-snug text-ink-muted sm:text-[16px]">
               For sales, ecommerce, support, ops, and anyone drowning in email. Connect mailboxes, write requirements in
-              plain language, pick from 50+ AI models, and push clean fields into your tools.
+              plain language, use current models like GPT and Sonnet, and push clean fields into your tools.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <LinkButton href={startHref} variant="accent" size="lg">

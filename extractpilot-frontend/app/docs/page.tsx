@@ -262,7 +262,7 @@ export default function DocsPage() {
               </ul>
               <p>
                 Pick <strong className="text-night">classify</strong> and <strong className="text-night">extract</strong>{" "}
-                models separately from 50+ options (by plan). Unavailable models are disabled and we fall back
+                models by name — GPT, Sonnet, Fable, and the rest of the current set on your plan. Unavailable models are disabled and we fall back
                 automatically. Always <strong className="text-night">Save & activate</strong> before the next run.
               </p>
             </div>
@@ -342,28 +342,28 @@ export default function DocsPage() {
                 </thead>
                 <tbody className="text-night">
                   <tr className="border-b border-ink/5">
-                    <td className="px-5 py-3.5 font-semibold">Starter</td>
-                    <td className="px-5 py-3.5 text-ink-muted">Demo / light use</td>
-                    <td className="px-5 py-3.5 text-ink-muted">10+ fast models</td>
+                    <td className="px-5 py-3.5 font-semibold">Basic</td>
+                    <td className="px-5 py-3.5 text-ink-muted">50 / week</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Gemini</td>
                     <td className="px-5 py-3.5 text-ink-muted">Trying the flow</td>
                   </tr>
                   <tr className="border-b border-ink/5">
-                    <td className="px-5 py-3.5 font-semibold">Team</td>
+                    <td className="px-5 py-3.5 font-semibold">Standard</td>
                     <td className="px-5 py-3.5 text-ink-muted">1,000 / week</td>
-                    <td className="px-5 py-3.5 text-ink-muted">20+ models</td>
-                    <td className="px-5 py-3.5 text-ink-muted">Busy shared inboxes</td>
+                    <td className="px-5 py-3.5 text-ink-muted">GPT and Claude</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Cron, tools, summaries</td>
                   </tr>
                   <tr className="border-b border-ink/5">
-                    <td className="px-5 py-3.5 font-semibold">Business</td>
+                    <td className="px-5 py-3.5 font-semibold">Premium</td>
                     <td className="px-5 py-3.5 text-ink-muted">5,000 / week</td>
-                    <td className="px-5 py-3.5 text-ink-muted">35+ models</td>
-                    <td className="px-5 py-3.5 text-ink-muted">Multi-team ops</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Fable, GPT, Sonnet</td>
+                    <td className="px-5 py-3.5 text-ink-muted">More tools and volume</td>
                   </tr>
                   <tr>
                     <td className="px-5 py-3.5 font-semibold">Enterprise</td>
                     <td className="px-5 py-3.5 text-ink-muted">20,000 / week</td>
-                    <td className="px-5 py-3.5 text-ink-muted">Full 50+ catalog</td>
-                    <td className="px-5 py-3.5 text-ink-muted">Company-wide mail</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Fable, GPT, Sonnet, Opus</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Custom cron schedules</td>
                   </tr>
                 </tbody>
               </table>

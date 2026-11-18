@@ -23,10 +23,10 @@ type PlanCard = {
 };
 
 const HIGHLIGHTS = [
-  { label: "1,000 emails / week", detail: "on Team" },
-  { label: "20+ AI models", detail: "classify + extract" },
-  { label: "Multi-mailbox", detail: "Gmail & IMAP" },
-  { label: "Confidence scores", detail: "on every run" },
+  { label: "Basic is free", detail: "Standard $24.99" },
+  { label: "GPT, Sonnet, Fable", detail: "current models" },
+  { label: "Scheduled cron jobs", detail: "on paid plans" },
+  { label: "Tools and summaries", detail: "Slack, CRM, webhooks" },
 ];
 
 export default function PricingPage() {

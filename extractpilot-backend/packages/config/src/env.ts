@@ -108,11 +108,11 @@ export function loadEnv() {
     stripe: {
       secretKey: process.env.STRIPE_SECRET_KEY?.trim() ?? "",
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "",
-      /** Premium tier ($29.99/mo) — plan id `standard` in API */
+      /** Standard tier ($24.99/mo) — plan id `standard` in API */
       priceStandard: process.env.STRIPE_PRICE_STANDARD?.trim() ?? "",
-      /** Business tier ($49.99/mo) — plan id `premium` in API */
+      /** Premium tier ($49.99/mo) — plan id `premium` in API */
       pricePremium: process.env.STRIPE_PRICE_PREMIUM?.trim() ?? "",
-      /** Enterprise ($99.99/mo) */
+      /** Enterprise ($109.99/mo) */
       priceEnterprise: process.env.STRIPE_PRICE_ENTERPRISE?.trim() ?? "",
       /** One-time Connect your business setup ($99.99) */
       priceSetup: process.env.STRIPE_PRICE_SETUP?.trim() ?? "",

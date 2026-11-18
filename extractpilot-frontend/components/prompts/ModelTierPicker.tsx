@@ -143,7 +143,7 @@ export function ModelTierPicker({
     >
       <input
         className="input-field mb-4"
-        placeholder="Search 50+ models by name, provider, or tier…"
+        placeholder="Search models by name, provider, or tier…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />

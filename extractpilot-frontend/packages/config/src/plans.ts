@@ -44,8 +44,8 @@ export const PAID_PLAN_ORDER: PlanId[] = ["standard", "premium", "enterprise"];
 export const PLANS: Record<PlanId, PlanDefinition> = {
   free: {
     id: "free",
-    name: "Starter",
-    tagline: "Try the full flow on one inbox — no card required",
+    name: "Basic",
+    tagline: "Try the flow on one inbox — no card required",
     priceMonthlyUsd: 0,
     limits: {
       emailsPerPeriod: 50,
@@ -58,19 +58,17 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     },
     features: [
       "50 emails / week",
-      "10 extraction runs / day",
-      "Up to 10 schema fields",
-      "Multiple Gmail & IMAP mailboxes",
-      "Write your own requirements",
-      "Fast AI models (10+)",
+      "Manual extraction runs",
+      "Current models, including Gemini",
+      "One Gmail or IMAP mailbox",
       "Confidence scores",
     ],
   },
   standard: {
     id: "standard",
-    name: "Team",
-    tagline: "For growing ops teams that live in email",
-    priceMonthlyUsd: 29.99,
+    name: "Standard",
+    tagline: "Scheduled runs, summaries, and the tools you already use",
+    priceMonthlyUsd: 24.99,
     popular: true,
     limits: {
       emailsPerPeriod: 1000,
@@ -83,20 +81,18 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     },
     features: [
       "1,000 emails / week",
-      "80 extraction runs / day",
-      "Up to 40 schema fields",
-      "20+ AI models (classify + extract)",
-      "Connect your workspace (multi-mailbox)",
-      "Confidence scores on every extract",
-      "Slack & webhook delivery",
+      "Latest models — GPT and Claude",
+      "Scheduled cron jobs",
+      "Slack, webhooks, and summaries",
+      "Multiple mailboxes",
       "Email support",
     ],
   },
   premium: {
     id: "premium",
-    name: "Business",
-    tagline: "Higher volume for multi-team operations",
-    priceMonthlyUsd: 79.99,
+    name: "Premium",
+    tagline: "Frontier models, more tools, and higher volume",
+    priceMonthlyUsd: 49.99,
     limits: {
       emailsPerPeriod: 5000,
       emailQuotaPeriod: "week",
@@ -108,20 +104,18 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     },
     features: [
       "5,000 emails / week",
-      "300 extraction runs / day",
-      "Up to 120 schema fields",
-      "35+ AI models including Sonnet & GPT-4o",
-      "Multi-mailbox workflows",
-      "Priority queue + confidence review",
-      "Webhooks to CRM / Slack",
+      "Latest models — Fable, GPT, and Sonnet",
+      "Scheduled cron jobs",
+      "Slack, webhooks, CRM, and summaries",
+      "Multiple mailboxes",
       "Priority email support",
     ],
   },
   enterprise: {
     id: "enterprise",
     name: "Enterprise",
-    tagline: "Full model catalog, compliance, and dedicated success",
-    priceMonthlyUsd: 149.99,
+    tagline: "Company-wide mail on your own schedule",
+    priceMonthlyUsd: 109.99,
     limits: {
       emailsPerPeriod: 20_000,
       emailQuotaPeriod: "week",
@@ -133,13 +127,11 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     },
     features: [
       "20,000 emails / week",
-      "1,500 extraction runs / day",
-      "Up to 250 schema fields",
-      "50+ AI models (full catalog)",
-      "Unavailable-model auto-fallback",
+      "Latest models — Fable, GPT, Sonnet, and Opus",
+      "Custom cron schedules",
+      "Every tool connection, plus summaries",
       "Dedicated success manager",
-      "Custom SLA & compliance review",
-      "SSO-ready workspace controls",
+      "Custom SLA and SSO-ready controls",
     ],
   },
 };
@@ -150,7 +142,7 @@ export const BETA_DISCLAIMER =
   "Plans include model selection by tier. Monthly price locks at checkout when billing is enabled.";
 
 export const BETA_ACCESS_NOTICE =
-  "Team includes 1,000 emails/week and 20+ AI models — scale when your inbox volume grows.";
+  "Basic is free. Standard is $24.99/mo with cron jobs, tool connections, and current models.";
 
 export const BETA_LAUNCH_LABEL = "Inbox automation for teams";
 
