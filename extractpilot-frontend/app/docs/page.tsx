@@ -8,9 +8,10 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const TOC = [
   { id: "overview", label: "Overview" },
+  { id: "who", label: "Who it's for" },
   { id: "quickstart", label: "Quick start" },
   { id: "mailboxes", label: "Mailboxes" },
-  { id: "prompts", label: "Prompts & AI models" },
+  { id: "requirements", label: "Requirements & AI" },
   { id: "extract", label: "Run extraction" },
   { id: "results", label: "Results & confidence" },
   { id: "integrations", label: "Connect your tools" },
@@ -19,42 +20,61 @@ const TOC = [
   { id: "faq", label: "FAQ" },
 ];
 
-const QUICK_STEPS = [
+const AUDIENCES = [
   {
-    title: "Sign in with Google",
-    body: "Click Start free. We create a private workspace tied to your account — no credit card.",
+    title: "Business leaders & ops",
+    body: "Turn shared inboxes into dashboards of structured work — no more copy-paste into spreadsheets.",
   },
   {
-    title: "Connect at least one mailbox",
-    body: "Open Mailboxes and add an agent or ISA Gmail with an App Password. You can add more later.",
+    title: "Sales & account teams",
+    body: "Pull leads, deal terms, and follow-ups from hundreds of emails into your CRM automatically.",
   },
   {
-    title: "Activate a real-estate prompt",
-    body: "In Prompts, pick Buyer leads (or another template), choose classify + extract models, Save & activate.",
+    title: "Ecommerce & marketplace sellers",
+    body: "Extract orders, returns, supplier updates, and customer issues from daily mail volume.",
   },
   {
-    title: "Run Get started → Extract",
-    body: "Choose a short lookback window, run extraction, then open Results to review structured fields.",
+    title: "Customer support & offices",
+    body: "Classify tickets, pull case fields from attachments, and route clean JSON to helpdesk tools.",
   },
 ];
 
-const PROMPT_PACK = [
-  "Buyer leads",
-  "Seller & listing intake",
-  "Showing & tour requests",
-  "Offer & LOI terms",
-  "Closing & escrow updates",
-  "Tenant & maintenance",
+const QUICK_STEPS = [
+  {
+    title: "Sign in with Google",
+    body: "Click Start free. We create a private workspace for your account — no credit card.",
+  },
+  {
+    title: "Connect at least one mailbox",
+    body: "Open Mailboxes and add a Gmail or Outlook/IMAP inbox with an App Password. Add more team inboxes anytime.",
+  },
+  {
+    title: "Write your requirements",
+    body: "Describe what to extract in plain language (or open a starter template), set output fields, Save & activate.",
+  },
+  {
+    title: "Run Extract Now",
+    body: "Choose a short lookback window, run extraction, then open Results to review structured fields + confidence.",
+  },
+];
+
+const TEMPLATE_EXAMPLES = [
+  "Inbound leads & inquiries",
+  "Vendor invoices (AP)",
+  "Orders & shipping updates",
+  "Support tickets",
+  "Contracts & clearances",
+  "Custom — write your own",
 ];
 
 const FAQ = [
   {
-    q: "Do I need to reconnect Google every time I open Plans?",
-    a: "No. Once signed in, stay in the dashboard Plans page to upgrade. Public /pricing also detects your session and keeps you logged in.",
+    q: "Do I need to sign in again to upgrade a plan?",
+    a: "No. Once signed in, use dashboard Plans. Public /pricing also keeps your session if you're already logged in.",
   },
   {
-    q: "Can each agent have their own Gmail?",
-    a: "Yes. Add multiple mailboxes, then set one as Active before you extract. Managers can demo ISA + listing agent inboxes in the same workspace.",
+    q: "Can I connect multiple Gmail or Outlook accounts?",
+    a: "Yes. Add as many mailboxes as you need (sales, support, orders, personal), then set one as Active before you extract.",
   },
   {
     q: "What if an AI model is unavailable?",
@@ -62,11 +82,11 @@ const FAQ = [
   },
   {
     q: "How do confidence scores work?",
-    a: "Each classification includes a confidence value so staff know what to double-check before CRM entry.",
+    a: "Each classification includes a confidence value so your team knows what to double-check before CRM or helpdesk entry.",
   },
   {
-    q: "Is checkout required for a demo?",
-    a: "No. Start free and use the console. Paid plans unlock higher weekly email volume and more AI models when billing is enabled.",
+    q: "Is this only for one industry?",
+    a: "No. ExtractPilot is for anyone drowning in email — sales, ecommerce, support, offices, agencies, and ops teams. Templates are optional starters; you write your own requirements.",
   },
 ];
 
@@ -115,10 +135,11 @@ export default function DocsPage() {
         <main className="min-w-0 space-y-16">
           <section id="overview" className="scroll-mt-28">
             <p className="section-label-accent">ExtractPilot docs</p>
-            <h1 className="page-title">How brokerages run ExtractPilot end to end.</h1>
+            <h1 className="page-title">Automate your email workflow — end to end.</h1>
             <p className="page-lede">
-              This guide is for managers, agents, and ops staff. Follow it once and you&apos;ll know how to connect
-              inboxes, pick AI models, extract deals from email, and push clean data into Slack or your CRM.
+              Built for anyone who gets dozens or hundreds of emails a day. Connect inboxes, describe what you need in
+              plain language, extract structured data (including attachments), and push results into Slack, Zapier, or
+              your CRM.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <LinkButton href={startHref} variant="accent">
@@ -130,10 +151,25 @@ export default function DocsPage() {
             </div>
           </section>
 
+          <section id="who" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-night">Who it&apos;s for</h2>
+            <p className="mt-2 text-[16px] text-ink-muted">
+              Same product for every team — only your requirements and schema change.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {AUDIENCES.map((item) => (
+                <article key={item.title} className="saas-card p-5">
+                  <h3 className="font-bold text-night">{item.title}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">{item.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
           <section id="quickstart" className="scroll-mt-28">
             <h2 className="text-2xl font-bold text-night">Quick start (about 10 minutes)</h2>
             <p className="mt-2 text-[16px] text-ink-muted">
-              Use this path for a live demo with a manager in the room.
+              From empty workspace to structured results — no engineering required.
             </p>
             <ol className="mt-6 space-y-4">
               {QUICK_STEPS.map((step, i) => (
@@ -151,16 +187,16 @@ export default function DocsPage() {
           </section>
 
           <section id="mailboxes" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Mailboxes (multi-Gmail)</h2>
+            <h2 className="text-2xl font-bold text-night">Mailboxes (multi-inbox)</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
-                Go to <strong className="text-night">Mailboxes</strong> in the sidebar. Add each inbox your team uses —
-                ISA desk, listing agents, transaction coordinators, property management.
+                Go to <strong className="text-night">Mailboxes</strong> in the sidebar. Add every inbox you want to
+                automate — sales, support, orders, vendors, or a personal work Gmail.
               </p>
               <p>
                 For Google accounts, create an{" "}
                 <strong className="text-night">App Password</strong> (2FA required) and paste it when connecting. Outlook
-                / IMAP presets are available for office mail.
+                / IMAP presets cover most office mail.
               </p>
               <p>
                 Only one mailbox is <strong className="text-night">Active</strong> at a time. Switch active before you
@@ -172,32 +208,31 @@ export default function DocsPage() {
             </LinkButton>
           </section>
 
-          <section id="prompts" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Prompts & AI models</h2>
+          <section id="requirements" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-night">Requirements & AI models</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
-                A prompt tells ExtractPilot <em>what</em> to look for and which JSON fields to return. Start with the
-                real-estate pack, then customize.
+                Tell ExtractPilot <em>what</em> to pull from each email (and attachments) in plain language, then define
+                the JSON fields you want back. Optional starters help if you&apos;re stuck — or write your own.
               </p>
               <ul className="grid gap-2 sm:grid-cols-2">
-                {PROMPT_PACK.map((name) => (
-                  <li key={name} className="rounded-xl border border-ink/[0.07] bg-paper-elevated px-4 py-3 text-[14px] font-medium text-night">
+                {TEMPLATE_EXAMPLES.map((name) => (
+                  <li
+                    key={name}
+                    className="rounded-xl border border-ink/[0.07] bg-paper-elevated px-4 py-3 text-[14px] font-medium text-night"
+                  >
                     {name}
                   </li>
                 ))}
               </ul>
               <p>
-                In Prompt studio you pick <strong className="text-night">classify</strong> and{" "}
-                <strong className="text-night">extract</strong> models separately from 50+ options (by plan). Search by
-                name or provider. Unavailable models are disabled and we fall back automatically.
-              </p>
-              <p>
-                Always <strong className="text-night">Save & activate</strong> the prompt you want the next extraction to
-                use.
+                Pick <strong className="text-night">classify</strong> and <strong className="text-night">extract</strong>{" "}
+                models separately from 50+ options (by plan). Unavailable models are disabled and we fall back
+                automatically. Always <strong className="text-night">Save & activate</strong> before the next run.
               </p>
             </div>
             <LinkButton href={promptsHref} variant="secondary" size="sm" className="mt-5">
-              Open Prompts
+              Open requirements / prompts
             </LinkButton>
           </section>
 
@@ -205,12 +240,12 @@ export default function DocsPage() {
             <h2 className="text-2xl font-bold text-night">Run extraction</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
-                Open <strong className="text-night">Get started</strong> (or Extract now in the top bar). Confirm mailbox
-                + active prompt, choose a lookback window (start short for demos), then run.
+                Open <strong className="text-night">Get started</strong> (or Extract Now in the top bar). Confirm mailbox
+                + active requirements, choose a lookback window (start short), then run.
               </p>
               <p>
                 The worker fetches mail, classifies relevance, extracts fields, and stores results with source email
-                context and attachment text when available.
+                context and attachment text when available — useful when invoices, forms, or clearances arrive as PDFs.
               </p>
             </div>
           </section>
@@ -220,11 +255,11 @@ export default function DocsPage() {
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 <strong className="text-night">Results</strong> shows structured JSON per email. Use confidence scores to
-                decide what staff should review before CRM entry.
+                decide what humans should review before CRM, ERP, or helpdesk entry.
               </p>
               <p>
-                Low-confidence or failed items can go to the <strong className="text-night">Review queue</strong> for
-                human correction. Original subject, sender, and body stay attached so nothing is a black box.
+                Low-confidence or failed items go to the <strong className="text-night">Review queue</strong>. Original
+                subject, sender, and body stay attached so nothing is a black box.
               </p>
             </div>
           </section>
@@ -233,26 +268,24 @@ export default function DocsPage() {
             <h2 className="text-2xl font-bold text-night">Connect your tools</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
-                Open <strong className="text-night">Integrations</strong> to wire delivery after each extraction:
+                Open <strong className="text-night">Integrations</strong> to deliver data after each extraction:
               </p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
-                  <strong className="text-night">Slack</strong> — paste an incoming webhook for channel alerts.
+                  <strong className="text-night">Slack</strong> — channel alerts via incoming webhook.
                 </li>
                 <li>
-                  <strong className="text-night">Customer webhook</strong> — Zapier Catch Hook, Make, Follow Up Boss,
-                  HubSpot, Salesforce, or your own HTTPS endpoint.
+                  <strong className="text-night">Customer webhook</strong> — Zapier, Make, HubSpot, Salesforce, Shopify
+                  flows, or your own HTTPS endpoint.
                 </li>
-                <li>
-                  Toggle notify on completed / failed so ops only gets the events they want.
-                </li>
+                <li>Toggle notify on completed / failed so teams only get the events they want.</li>
               </ul>
             </div>
             <pre className="code-block mt-5 overflow-x-auto text-[12px]">{`{
   "event": "extraction.completed",
   "emailId": "...",
-  "subject": "New buyer inquiry — 412 Maple",
-  "extracted": { "buyer_name": "...", "budget": 650000 },
+  "subject": "Order #18420 — payment confirmed",
+  "extracted": { "order_id": "18420", "total": 129.5, "customer_email": "…" },
   "confidence": 0.91
 }`}</pre>
             <LinkButton href={toolsHref} variant="secondary" size="sm" className="mt-5">
@@ -277,32 +310,33 @@ export default function DocsPage() {
                     <td className="py-3 font-semibold">Starter</td>
                     <td className="py-3 text-ink-muted">Demo / light use</td>
                     <td className="py-3 text-ink-muted">10+ fast models</td>
-                    <td className="py-3 text-ink-muted">First workspace</td>
+                    <td className="py-3 text-ink-muted">Trying the flow</td>
                   </tr>
                   <tr className="border-b border-ink/5">
                     <td className="py-3 font-semibold">Team</td>
                     <td className="py-3 text-ink-muted">1,000 / week</td>
                     <td className="py-3 text-ink-muted">20+ models</td>
-                    <td className="py-3 text-ink-muted">Busy sales floor</td>
+                    <td className="py-3 text-ink-muted">Busy shared inboxes</td>
                   </tr>
                   <tr className="border-b border-ink/5">
                     <td className="py-3 font-semibold">Business</td>
                     <td className="py-3 text-ink-muted">5,000 / week</td>
                     <td className="py-3 text-ink-muted">35+ models</td>
-                    <td className="py-3 text-ink-muted">Multi-office ops</td>
+                    <td className="py-3 text-ink-muted">Multi-team ops</td>
                   </tr>
                   <tr>
                     <td className="py-3 font-semibold">Enterprise</td>
                     <td className="py-3 text-ink-muted">20,000 / week</td>
                     <td className="py-3 text-ink-muted">Full 50+ catalog</td>
-                    <td className="py-3 text-ink-muted">Brokerage-wide</td>
+                    <td className="py-3 text-ink-muted">Company-wide mail</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p className="mt-4 text-[15px] text-ink-muted">
-              Manage upgrades from dashboard <strong className="text-night">Plans</strong> while signed in. Optional{" "}
-              <strong className="text-night">Connect your workspace</strong> is a one-time white-glove setup add-on.
+              Manage upgrades from dashboard <strong className="text-night">Plans</strong>. Optional{" "}
+              <strong className="text-night">Connect your workspace</strong> is a one-time setup add-on if you want a
+              guided onboarding call.
             </p>
           </section>
 
@@ -315,7 +349,7 @@ export default function DocsPage() {
             <ol className="mt-6 space-y-3">
               {[
                 { method: "PATCH", path: "/api/v1/integrations", desc: "Save webhook + Slack URLs" },
-                { method: "POST", path: "/api/v1/user-query", desc: "Create prompt + output schema" },
+                { method: "POST", path: "/api/v1/user-query", desc: "Create requirements + output schema" },
                 { method: "POST", path: "/api/v1/mailboxes", desc: "Add IMAP / Gmail mailbox" },
                 { method: "POST", path: "/api/v1/mailbox/extract-emails", desc: "Fetch + extract" },
                 { method: "GET", path: "/api/v1/user-query/current/results", desc: "Read structured results" },
@@ -348,9 +382,10 @@ export default function DocsPage() {
 
           <section className="saas-card-dark p-8 sm:p-10">
             <p className="section-label !text-white/50">Ready</p>
-            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Start free and walk the flow live.</h2>
+            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Start free and automate your inbox.</h2>
             <p className="mt-3 max-w-xl text-[16px] text-white/70">
-              Sign in, connect two Gmails, activate Buyer leads, extract, then show Results + Integrations to the room.
+              Sign in, connect a mailbox, write requirements (or pick a template), extract, then wire Results into the
+              tools you already use.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               {!loading ? (
