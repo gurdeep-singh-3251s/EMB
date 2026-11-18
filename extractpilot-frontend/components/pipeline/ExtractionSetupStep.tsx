@@ -217,7 +217,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
           <p className="text-[13px] text-ink-muted">Plain language in → fields out. Use Enhance if you want help.</p>
         </div>
         <Button variant="secondary" size="sm" onClick={() => setTemplatesOpen(true)}>
-          See templates
+          Not sure? See templates
         </Button>
       </div>
 
@@ -278,8 +278,8 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
         <Button variant="accent" size="sm" onClick={() => void save()} disabled={saving || loading}>
           {saving ? "Saving…" : "Save & continue →"}
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setTemplatesOpen(true)}>
-          Templates
+        <Button variant="secondary" size="sm" onClick={() => setTemplatesOpen(true)}>
+          Not sure? See templates
         </Button>
         {message ? <p className="text-[12px] font-medium text-moss">{message}</p> : null}
         {error ? <p className="text-[12px] font-medium text-rose-700">{error}</p> : null}

@@ -90,6 +90,7 @@ export function TemplatesManager({
 
   const list = tab === "starters" ? starters : mineItems;
   const selected = list.find((t) => t.id === selectedId) ?? null;
+  const hasDraft = Boolean(draftQuery || draftName || draftRows.length);
 
   function loadIntoPreview(item: ListItem) {
     setSelectedId(item.id);
@@ -99,14 +100,13 @@ export function TemplatesManager({
     setDraftQuery(item.userQuery);
     setDraftRows(schemaToRows(item.outputSchema));
     setDirty(false);
-    setMsg(null);
+    setMsg(`Viewing “${item.name}”. Modify below, then Save or Use.`);
     setError(null);
   }
 
   useEffect(() => {
     if (!open) return;
-    const saved = loadUserTemplates();
-    setMine(saved);
+    setMine(loadUserTemplates());
     setMsg(null);
     setError(null);
     const first = PROMPT_TEMPLATES[0];
@@ -139,7 +139,7 @@ export function TemplatesManager({
     setDraftQuery(current.userQuery || "");
     setDraftRows(schemaToRows(current.outputSchema));
     setDirty(true);
-    setMsg("Blank draft — edit, save, then use.");
+    setMsg("New draft from your current editor — modify, save, then use.");
   }
 
   async function enhanceDraft() {
@@ -164,7 +164,7 @@ export function TemplatesManager({
       setDraftRows(schemaToRows(normalizeOutputSchema(res.data.outputSchema as Record<string, unknown>)));
     }
     setDirty(true);
-    setMsg(res.data.rationale ?? "Enhanced — review schema, save if you want to keep it.");
+    setMsg(res.data.rationale ?? "Enhanced — review, Save, then Use.");
   }
 
   function saveDraft() {
@@ -185,14 +185,18 @@ export function TemplatesManager({
       outputSchema: schema,
     });
     setMine(items);
-    const saved = items.find((t) => t.name === (draftName.trim() || "Untitled template")) ?? items[0];
+    const saved =
+      items.find((t) => t.id === customId) ??
+      items.find((t) => t.name === (draftName.trim() || "Untitled template")) ??
+      items[0];
     if (saved) {
       setCustomId(saved.id);
       setSelectedId(saved.id);
       setTab("mine");
     }
     setDirty(false);
-    setMsg("Saved to My templates. Click Use template when ready.");
+    setError(null);
+    setMsg("Saved. Click Use this template to load it into Get started.");
   }
 
   function useDraft() {
@@ -230,146 +234,169 @@ export function TemplatesManager({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-night/45 p-3 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-night/50 p-2 sm:items-center sm:p-4"
       role="dialog"
       aria-modal
     >
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Close" onClick={onClose} />
-      <div className="relative z-10 flex h-[min(92dvh,880px)] w-full max-w-6xl flex-col overflow-hidden rounded-[1.5rem] border border-ink/10 bg-paper shadow-ledger-lg">
-        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-ink/[0.07] px-4 py-3 sm:px-5">
+      <div className="relative z-10 flex max-h-[96dvh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-ink/10 bg-paper shadow-ledger-lg sm:h-[min(92dvh,900px)]">
+        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-ink/[0.08] px-4 py-3">
           <div>
             <p className="section-label-accent">Templates</p>
-            <h2 className="mt-0.5 text-lg font-bold text-night">Preview → modify → save → use</h2>
+            <h2 className="mt-0.5 text-lg font-bold text-night">Not sure? Browse templates</h2>
             <p className="text-[13px] text-ink-muted">
-              Click a template to inspect it. Nothing applies until you press Use template.
+              View a template → Modify → Save → <strong className="text-night">Use this template</strong>
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="secondary" size="sm" onClick={onClose}>
             Close
           </Button>
         </header>
 
+        {/* Always-visible primary actions */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-ink/[0.08] bg-accent-soft/40 px-4 py-2.5">
+          <Button variant="accent" size="sm" onClick={useDraft} disabled={!hasDraft}>
+            Use this template
+          </Button>
+          <Button variant="secondary" size="sm" onClick={saveDraft} disabled={!hasDraft}>
+            {customId ? "Save modifications" : "Save as my template"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={enhancing || !draftQuery.trim()}
+            onClick={() => void enhanceDraft()}
+          >
+            {enhancing ? "Enhancing…" : "Enhance with AI"}
+          </Button>
+          {customId ? (
+            <Button variant="ghost" size="sm" onClick={removeSelected}>
+              Delete
+            </Button>
+          ) : null}
+          {dirty ? <span className="text-[12px] font-semibold text-accent">Unsaved changes</span> : null}
+        </div>
+
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <aside className="flex w-full shrink-0 flex-col border-b border-ink/[0.07] lg:w-[300px] lg:border-b-0 lg:border-r">
+          <aside className="flex max-h-[34vh] w-full shrink-0 flex-col border-b border-ink/[0.08] lg:max-h-none lg:w-[320px] lg:border-b-0 lg:border-r">
             <div className="flex gap-1 px-3 pt-3">
               <TabButton active={tab === "starters"} onClick={() => setTab("starters")}>
                 Starters
               </TabButton>
-              <TabButton active={tab === "mine"} onClick={() => setTab("mine")}>
+              <TabButton
+                active={tab === "mine"}
+                onClick={() => {
+                  setTab("mine");
+                  if (mineItems[0]) loadIntoPreview(mineItems[0]);
+                }}
+              >
                 Mine ({mine.length})
               </TabButton>
             </div>
-            <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
               {list.length === 0 ? (
-                <p className="px-2 py-6 text-[13px] text-ink-muted">No custom templates yet — save a draft.</p>
+                <p className="px-2 py-6 text-[13px] text-ink-muted">No saved templates yet.</p>
               ) : (
                 list.map((item) => {
                   const active = item.id === selectedId;
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      type="button"
-                      onClick={() => loadIntoPreview(item)}
-                      className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
-                        active
-                          ? "border-accent/40 bg-accent-soft/70"
-                          : "border-ink/[0.07] bg-paper-elevated hover:border-ink/15"
+                      className={`rounded-xl border p-3 ${
+                        active ? "border-accent/45 bg-accent-soft/60" : "border-ink/[0.08] bg-paper-elevated"
                       }`}
                     >
                       <p className="text-[10px] font-bold uppercase tracking-wide text-ink-faint">{item.category}</p>
                       <p className="mt-0.5 text-[13px] font-semibold text-night">{item.name}</p>
                       <p className="mt-0.5 line-clamp-2 text-[12px] text-ink-muted">{item.description}</p>
-                      {item.documents && item.documents.length > 0 ? (
-                        <p className="mt-1.5 text-[11px] text-accent">{item.documents.length} doc types</p>
-                      ) : null}
-                    </button>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        <Button variant={active ? "secondary" : "accent"} size="sm" className="!h-8 !px-3 text-[12px]" onClick={() => loadIntoPreview(item)}>
+                          {active ? "Viewing" : "View"}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="!h-8 !px-3 text-[12px]"
+                          onClick={() => {
+                            loadIntoPreview(item);
+                            setMsg(`Modify “${item.name}” on the right, then Save modifications.`);
+                          }}
+                        >
+                          Modify
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })
               )}
             </div>
-            <div className="border-t border-ink/[0.07] p-3">
+            <div className="border-t border-ink/[0.08] p-3">
               <Button variant="secondary" size="sm" className="w-full" onClick={startBlank}>
                 + New from current editor
               </Button>
             </div>
           </aside>
 
-          <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {!selected && !dirty && !draftQuery ? (
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-paper">
+            {!hasDraft ? (
               <div className="flex flex-1 items-center justify-center p-8 text-[14px] text-ink-muted">
-                Select a template on the left to preview.
+                Click <strong className="mx-1 text-night">View</strong> on a template to open it here.
               </div>
             ) : (
-              <>
-                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4 sm:p-5">
-                  {selected?.documents && selected.documents.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selected.documents.map((d) => (
-                        <span key={d} className="pill !px-2.5 !py-1 !text-[10px]">
-                          {d}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-[12px] font-semibold text-ink-muted">Name</span>
-                      <input
-                        className="input-field mt-1 !rounded-xl !px-3 !py-2 text-[14px]"
-                        value={draftName}
-                        onChange={(e) => {
-                          setDraftName(e.target.value);
-                          markDirty();
-                        }}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-[12px] font-semibold text-ink-muted">Short description</span>
-                      <input
-                        className="input-field mt-1 !rounded-xl !px-3 !py-2 text-[14px]"
-                        value={draftDescription}
-                        onChange={(e) => {
-                          setDraftDescription(e.target.value);
-                          markDirty();
-                        }}
-                      />
-                    </label>
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+                {selected?.documents && selected.documents.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selected.documents.map((d) => (
+                      <span key={d} className="pill !px-2.5 !py-1 !text-[10px]">
+                        {d}
+                      </span>
+                    ))}
                   </div>
+                ) : null}
 
-                  <div>
-                    <div className="mb-1.5 flex items-center justify-between gap-2">
-                      <span className="text-[12px] font-semibold text-ink-muted">Requirements (multi-doc OK)</span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="!h-8"
-                        disabled={enhancing || !draftQuery.trim()}
-                        onClick={() => void enhanceDraft()}
-                      >
-                        {enhancing ? "Enhancing…" : "Enhance with AI"}
-                      </Button>
-                    </div>
-                    <textarea
-                      className="input-field min-h-[9rem] resize-y !rounded-xl !px-3 !py-2.5 text-[13px] leading-relaxed"
-                      value={draftQuery}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-[12px] font-semibold text-ink-muted">Name</span>
+                    <input
+                      className="input-field mt-1 !rounded-xl !px-3 !py-2 text-[14px]"
+                      value={draftName}
                       onChange={(e) => {
-                        setDraftQuery(e.target.value);
+                        setDraftName(e.target.value);
                         markDirty();
                       }}
-                      placeholder="Describe what to extract from the email and every attached document…"
                     />
-                  </div>
+                  </label>
+                  <label className="block">
+                    <span className="text-[12px] font-semibold text-ink-muted">Short description</span>
+                    <input
+                      className="input-field mt-1 !rounded-xl !px-3 !py-2 text-[14px]"
+                      value={draftDescription}
+                      onChange={(e) => {
+                        setDraftDescription(e.target.value);
+                        markDirty();
+                      }}
+                    />
+                  </label>
+                </div>
 
-                  <div>
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-ink-muted">
-                        Output schema · {draftRows.length} field{draftRows.length === 1 ? "" : "s"}
-                      </span>
-                      {dirty ? (
-                        <span className="text-[11px] font-semibold text-accent">Unsaved changes</span>
-                      ) : null}
-                    </div>
+                <div>
+                  <span className="text-[12px] font-semibold text-ink-muted">Requirements (email + attachments)</span>
+                  <textarea
+                    className="input-field mt-1 min-h-[8rem] resize-y !rounded-xl !px-3 !py-2.5 text-[13px] leading-relaxed"
+                    value={draftQuery}
+                    onChange={(e) => {
+                      setDraftQuery(e.target.value);
+                      markDirty();
+                    }}
+                    placeholder="Describe what to extract from the email and every attached document…"
+                  />
+                </div>
+
+                <div>
+                  <span className="text-[12px] font-semibold text-ink-muted">
+                    Output schema · {draftRows.length} field{draftRows.length === 1 ? "" : "s"}
+                  </span>
+                  <div className="mt-1.5">
                     <SchemaBuilder
                       rows={draftRows}
                       compact
@@ -379,28 +406,24 @@ export function TemplatesManager({
                       }}
                     />
                   </div>
-
-                  {msg ? <p className="text-[13px] font-medium text-moss">{msg}</p> : null}
-                  {error ? <p className="text-[13px] font-medium text-rose-700">{error}</p> : null}
                 </div>
 
-                <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ink/[0.07] bg-paper-elevated/80 px-4 py-3">
-                  <Button variant="accent" size="sm" onClick={useDraft}>
-                    Use template
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={saveDraft}>
-                    {customId ? "Save changes" : "Save to My templates"}
-                  </Button>
-                  {customId ? (
-                    <Button variant="ghost" size="sm" onClick={removeSelected}>
-                      Delete
-                    </Button>
-                  ) : (
-                    <span className="text-[12px] text-ink-muted">Starters are read-only until you save a copy.</span>
-                  )}
-                </footer>
-              </>
+                {msg ? <p className="rounded-xl bg-moss/10 px-3 py-2 text-[13px] font-medium text-moss">{msg}</p> : null}
+                {error ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-[13px] font-medium text-rose-700">{error}</p> : null}
+              </div>
             )}
+
+            <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-ink/[0.08] bg-paper-elevated px-4 py-3">
+              <Button variant="accent" size="sm" onClick={useDraft} disabled={!hasDraft}>
+                Use this template
+              </Button>
+              <Button variant="secondary" size="sm" onClick={saveDraft} disabled={!hasDraft}>
+                {customId ? "Save modifications" : "Save as my template"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                Cancel
+              </Button>
+            </footer>
           </section>
         </div>
       </div>
