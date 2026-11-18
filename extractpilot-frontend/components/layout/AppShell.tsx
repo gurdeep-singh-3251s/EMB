@@ -173,7 +173,7 @@ function HeaderTitle({ pathname }: { pathname: string }) {
     "Home";
   return (
     <div>
-      <p className="section-label">ExtractPilot</p>
+      <p className="section-label lg:hidden">ExtractPilot</p>
       <p className="font-display text-base font-bold tracking-tight text-night sm:text-lg">{label}</p>
     </div>
   );
