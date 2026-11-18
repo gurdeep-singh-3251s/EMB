@@ -5,10 +5,7 @@ import { BaseRestController } from "../helper/init";
 import { getRequestTenantUserId } from "../requestContext";
 import { FIRST_MONTH_DISCOUNT_LABEL } from "@repo/config/plans";
 import { cacheGet, cacheSet, tenantCacheKey } from "../../infra/redisCache";
-
-function billingEnabled(env: RestHandlerDeps["env"]): boolean {
-  return env.enableBilling && !!env.stripe.secretKey;
-}
+import { checkoutAvailable, resolveCheckoutMode } from "../billingMode";
 
 class PlansHandler extends BaseRestController {
   async listPlans(): Promise<Response> {
@@ -40,7 +37,8 @@ class PlansHandler extends BaseRestController {
       plans: Object.values(PLANS),
       setupOffer: SETUP_OFFER,
       activePlanId,
-      billingEnabled: billingEnabled(this.deps.env),
+      billingEnabled: checkoutAvailable(this.deps.env),
+      checkoutMode: resolveCheckoutMode(this.deps.env),
     };
 
     await cacheSet(redis, cacheKey, body, this.deps.env.cachePlansTtlSeconds);

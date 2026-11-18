@@ -6,6 +6,8 @@ import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { BaseRestController } from "../helper/init";
 import { getActivePlanId, getBillingRow, upsertWorkspaceBilling } from "../middleware/planLimits";
 import { getRequestTenantUserId } from "../requestContext";
+import { resolveCheckoutMode, stripeCheckoutReady } from "../billingMode";
+import { cacheDel, tenantCacheKey } from "../../infra/redisCache";
 
 function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey);
@@ -43,19 +45,52 @@ class BillingHandler extends BaseRestController {
     return createStripeClient(key);
   }
 
-  async createCheckout(req: Request): Promise<Response> {
-    if (!this.deps.env.enableBilling) {
-      return this.billingDisabledResponse();
+  private async clearPlansCache(userId: string, planId: string) {
+    try {
+      await cacheDel(this.deps.getRedis(), tenantCacheKey("plans", userId, planId));
+      await cacheDel(this.deps.getRedis(), tenantCacheKey("plans", userId, "free"));
+    } catch {
+      // cache best-effort
     }
-    const stripe = this.stripe();
-    if (!stripe) {
-      return this.validationError("Stripe is not configured — set STRIPE_SECRET_KEY and price IDs.", null);
+  }
+
+  async createCheckout(req: Request): Promise<Response> {
+    const mode = resolveCheckoutMode(this.deps.env);
+    if (mode === "off") {
+      return this.billingDisabledResponse();
     }
 
     const body = await this.readJson(req);
     const parsed = z.object({ planId: z.enum(PAID_PLAN_IDS) }).safeParse(body);
     if (!parsed.success) {
-      return this.validationError("planId must be standard or premium", parsed.error.flatten());
+      return this.validationError("planId must be standard, premium, or enterprise", parsed.error.flatten());
+    }
+
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+
+    if (mode === "demo") {
+      await upsertWorkspaceBilling(this.deps.getDb(), tenant, {
+        planId: parsed.data.planId,
+        subscriptionStatus: "active",
+      });
+      await this.clearPlansCache(tenant, parsed.data.planId);
+      return this.success(
+        {
+          url: `${origin}/dashboard/pricing?checkout=success&mode=demo`,
+          sessionId: `demo_${parsed.data.planId}_${Date.now()}`,
+          checkoutMode: "demo",
+        },
+        "Plan activated for this workspace (demo checkout).",
+        200,
+      );
+    }
+
+    const stripe = this.stripe();
+    if (!stripe) {
+      return this.validationError("Stripe is not configured — set STRIPE_SECRET_KEY and price IDs.", null);
     }
 
     const priceId = resolveStripePriceId(this.deps.env, parsed.data.planId);
@@ -66,11 +101,7 @@ class BillingHandler extends BaseRestController {
       );
     }
 
-    const tenant = this.requireTenantUserId();
-    if (tenant instanceof Response) return tenant;
-
     const billing = await getBillingRow(this.deps.getDb(), tenant);
-    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
@@ -92,13 +123,32 @@ class BillingHandler extends BaseRestController {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-    return this.success({ url: session.url, sessionId: session.id }, null, 200);
+    return this.success({ url: session.url, sessionId: session.id, checkoutMode: "stripe" }, null, 200);
   }
 
   async createSetupCheckout(req: Request): Promise<Response> {
-    if (!this.deps.env.enableBilling) {
+    const mode = resolveCheckoutMode(this.deps.env);
+    if (mode === "off") {
       return this.billingDisabledResponse();
     }
+
+    const tenant = this.requireTenantUserId();
+    if (tenant instanceof Response) return tenant;
+
+    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+
+    if (mode === "demo") {
+      return this.success(
+        {
+          url: `${origin}/dashboard/pricing?checkout=setup-success&mode=demo`,
+          sessionId: `demo_setup_${Date.now()}`,
+          checkoutMode: "demo",
+        },
+        "Setup request recorded (demo checkout).",
+        200,
+      );
+    }
+
     const stripe = this.stripe();
     if (!stripe) {
       return this.validationError("Stripe is not configured — set STRIPE_SECRET_KEY and price IDs.", null);
@@ -112,11 +162,7 @@ class BillingHandler extends BaseRestController {
       );
     }
 
-    const tenant = this.requireTenantUserId();
-    if (tenant instanceof Response) return tenant;
-
     const billing = await getBillingRow(this.deps.getDb(), tenant);
-    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
@@ -132,7 +178,7 @@ class BillingHandler extends BaseRestController {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-    return this.success({ url: session.url, sessionId: session.id }, null, 200);
+    return this.success({ url: session.url, sessionId: session.id, checkoutMode: "stripe" }, null, 200);
   }
 
   async createPortal(): Promise<Response> {
@@ -248,10 +294,13 @@ class BillingHandler extends BaseRestController {
     const planId = await getActivePlanId(this.deps.getDb(), this.deps.env, tenant);
     const billing = await getBillingRow(this.deps.getDb(), tenant);
 
+    const checkoutMode = resolveCheckoutMode(this.deps.env);
     return this.success(
       {
         activePlanId: planId,
-        billingEnabled: this.deps.env.enableBilling && !!this.deps.env.stripe.secretKey,
+        billingEnabled: checkoutMode !== "off",
+        checkoutMode,
+        stripeReady: stripeCheckoutReady(this.deps.env),
         inviteOnly: this.deps.env.betaInviteOnly,
         subscriptionStatus: billing?.subscriptionStatus ?? "none",
         hasStripeCustomer: !!billing?.stripeCustomerId,

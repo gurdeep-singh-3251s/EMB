@@ -23,12 +23,15 @@ type PlanCard = {
 export default function DashboardPricingPage() {
   const searchParams = useSearchParams();
   const checkoutNotice = searchParams.get("checkout");
+  const checkoutModeParam = searchParams.get("mode");
 
   const [plans, setPlans] = useState<PlanCard[]>([]);
   const [activePlanId, setActivePlanId] = useState("free");
   const [billingEnabled, setBillingEnabled] = useState(false);
+  const [checkoutMode, setCheckoutMode] = useState<"stripe" | "demo" | "off">("off");
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [usage, setUsage] = useState<{
     emailsUsed: number;
     emailsLimit: number | null;
@@ -38,40 +41,57 @@ export default function DashboardPricingPage() {
     unlimitedQuota?: boolean;
   } | null>(null);
 
-  useEffect(() => {
-    void Promise.all([restClient.plans.list(), restClient.usage.get()]).then(([plansRes, usageRes]) => {
-      if (plansRes.success) {
-        setPlans(plansRes.data.plans as PlanCard[]);
-        setActivePlanId(plansRes.data.activePlanId);
-        setBillingEnabled(Boolean(plansRes.data.billingEnabled));
-      }
-      if (usageRes.success) setUsage(usageRes.data);
-    });
+  const refresh = useCallback(async () => {
+    const [plansRes, usageRes] = await Promise.all([restClient.plans.list(), restClient.usage.get()]);
+    if (plansRes.success) {
+      setPlans(plansRes.data.plans as PlanCard[]);
+      setActivePlanId(plansRes.data.activePlanId);
+      setBillingEnabled(Boolean(plansRes.data.billingEnabled));
+      const mode = (plansRes.data as { checkoutMode?: "stripe" | "demo" | "off" }).checkoutMode;
+      setCheckoutMode(mode ?? (plansRes.data.billingEnabled ? "stripe" : "off"));
+    }
+    if (usageRes.success) setUsage(usageRes.data);
   }, []);
 
-  const startSubscriptionCheckout = useCallback(async (planId: "standard" | "premium" | "enterprise") => {
-    setCheckoutPlanId(planId);
-    const res = await restClient.billing.checkout(planId);
-    setCheckoutPlanId(null);
-    if (res.success && res.data.url) {
-      window.location.href = res.data.url;
-    }
-  }, []);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const startSubscriptionCheckout = useCallback(
+    async (planId: "standard" | "premium" | "enterprise") => {
+      setCheckoutPlanId(planId);
+      setActionError(null);
+      const res = await restClient.billing.checkout(planId);
+      setCheckoutPlanId(null);
+      if (res.success && res.data.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+      setActionError(res.success ? "Checkout did not return a URL." : res.message);
+    },
+    [],
+  );
 
   const startSetupCheckout = useCallback(async () => {
     setSetupLoading(true);
+    setActionError(null);
     const res = await restClient.billing.checkoutSetup();
     setSetupLoading(false);
     if (res.success && res.data.url) {
       window.location.href = res.data.url;
+      return;
     }
+    setActionError(res.success ? "Checkout did not return a URL." : res.message);
   }, []);
 
   const openPortal = useCallback(async () => {
+    setActionError(null);
     const res = await restClient.billing.portal();
     if (res.success && res.data.url) {
       window.location.href = res.data.url;
+      return;
     }
+    setActionError(res.success ? "Portal unavailable." : res.message);
   }, []);
 
   const paidPlans = plans.filter((p) => p.id !== "free");
@@ -83,21 +103,36 @@ export default function DashboardPricingPage() {
         <p className="section-label">Billing</p>
         <h1 className="page-title !mt-2">Plans & usage</h1>
         <p className="page-lede">
-          Start free, then scale email volume and AI models. {BETA_DISCLAIMER}
+          Start free, then upgrade when you need more volume and AI models. {BETA_DISCLAIMER}
         </p>
         <p className="mt-2 max-w-2xl text-[15px] text-ink-muted">{BETA_ACCESS_NOTICE}</p>
       </div>
+
+      {checkoutMode === "demo" ? (
+        <div className="rounded-2xl border border-accent/25 bg-accent-soft/60 px-4 py-3 text-[14px] text-night">
+          <strong className="font-semibold">Demo checkout is on</strong> — Upgrade activates the plan in this workspace
+          instantly (Stripe is not connected yet). Perfect for live demos.
+        </div>
+      ) : null}
 
       {checkoutNotice ? (
         <Panel title="Checkout">
           <p className="text-sm text-ink">
             {checkoutNotice === "success"
-              ? "Subscription updated — thanks! It may take a moment for your plan to refresh."
+              ? checkoutModeParam === "demo"
+                ? "Plan activated for this workspace. Limits and models refresh with your new tier."
+                : "Subscription updated — thanks! It may take a moment for your plan to refresh."
               : checkoutNotice === "setup-success"
-                ? "Setup payment received — our team will reach out to schedule your onboarding."
+                ? checkoutModeParam === "demo"
+                  ? "Setup request recorded — continue in Get started, or book a real onboarding when Stripe is live."
+                  : "Setup payment received — our team will reach out to schedule your onboarding."
                 : "Checkout canceled — no charges were made."}
           </p>
         </Panel>
+      ) : null}
+
+      {actionError ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900">{actionError}</p>
       ) : null}
 
       {usage ? (
@@ -116,7 +151,7 @@ export default function DashboardPricingPage() {
               </dd>
             </div>
           </dl>
-          {billingEnabled ? (
+          {checkoutMode === "stripe" ? (
             <Button variant="secondary" size="sm" className="mt-4" onClick={() => void openPortal()}>
               Manage subscription
             </Button>
@@ -124,82 +159,102 @@ export default function DashboardPricingPage() {
         </Panel>
       ) : null}
 
-      <h2 className="text-lg font-bold text-night">Monthly plans</h2>
-      <p className="mt-1 text-[15px] text-ink-muted">All prices in USD, billed monthly. Same product on every tier — limits and models scale up.</p>
+      <div>
+        <h2 className="text-lg font-bold text-night">Monthly plans</h2>
+        <p className="mt-1 text-[15px] text-ink-muted">
+          All prices in USD. Click Upgrade to switch tiers
+          {checkoutMode === "demo" ? " in this demo workspace" : ""}.
+        </p>
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-4">
+      <div className="grid gap-5 lg:grid-cols-4">
         {freePlan ? (
           <article
-            className={`glass-panel flex flex-col p-6 ${freePlan.id === activePlanId ? "ring-2 ring-rust" : ""}`}
+            className={`saas-card flex flex-col p-6 ${freePlan.id === activePlanId ? "ring-2 ring-accent/40" : ""}`}
           >
             {freePlan.id === activePlanId ? (
-              <span className="mb-3 w-fit rounded-full bg-rust/10 px-3 py-1 text-xs font-semibold text-rust">
-                Current plan
-              </span>
+              <span className="pill-accent mb-4 !py-1">Current plan</span>
             ) : (
-              <span className="mb-3 h-6" aria-hidden />
+              <span className="mb-4 h-7" aria-hidden />
             )}
-            <h2 className="font-display text-xl font-bold">{freePlan.name}</h2>
+            <h2 className="text-xl font-bold text-night">{freePlan.name}</h2>
             <PlanPrice priceMonthlyUsd={freePlan.priceMonthlyUsd} />
-            <p className="mt-2 text-sm text-ink-muted">{freePlan.tagline}</p>
-            <ul className="mt-6 flex-1 space-y-2 text-sm text-ink">
+            <p className="mt-2 text-[14px] text-ink-muted">{freePlan.tagline}</p>
+            <ul className="mt-6 flex-1 space-y-2 text-[14px] text-ink-muted">
               {freePlan.features.map((f) => (
-                <li key={f}>✓ {f}</li>
+                <li key={f} className="flex gap-2">
+                  <span className="text-accent">✓</span>
+                  {f}
+                </li>
               ))}
             </ul>
+            {freePlan.id === activePlanId ? (
+              <p className="mt-8 text-center text-[13px] font-medium text-ink-muted">You&apos;re on Starter</p>
+            ) : (
+              <LinkButton href="/dashboard/workflow?step=1" variant="secondary" className="mt-8 w-full">
+                Continue free setup
+              </LinkButton>
+            )}
           </article>
         ) : null}
 
         {paidPlans.map((plan) => (
           <article
             key={plan.id}
-            className={`glass-panel flex flex-col p-6 ${
-              plan.id === activePlanId ? "ring-2 ring-rust" : plan.popular ? "ring-2 ring-ink/20" : ""
+            className={`saas-card flex flex-col p-6 ${
+              plan.id === activePlanId
+                ? "ring-2 ring-accent/40"
+                : plan.popular
+                  ? "ring-2 ring-accent/25 lg:-translate-y-0.5"
+                  : ""
             }`}
           >
             {plan.id === activePlanId ? (
-              <span className="mb-3 w-fit rounded-full bg-rust/10 px-3 py-1 text-xs font-semibold text-rust">
-                Current plan
-              </span>
+              <span className="pill-accent mb-4 !py-1">Current plan</span>
             ) : plan.popular ? (
-              <span className="mb-3 w-fit rounded-full bg-rust px-3 py-1 text-xs font-semibold text-paper">
-                Most popular
-              </span>
+              <span className="pill-accent mb-4 !py-1">Most popular</span>
             ) : (
-              <span className="mb-3 h-6" aria-hidden />
+              <span className="mb-4 h-7" aria-hidden />
             )}
-            <h2 className="font-display text-xl font-bold">{plan.name}</h2>
+            <h2 className="text-xl font-bold text-night">{plan.name}</h2>
             <PlanPrice priceMonthlyUsd={plan.priceMonthlyUsd} />
-            <p className="mt-2 text-sm text-ink-muted">{plan.tagline}</p>
-            <ul className="mt-6 flex-1 space-y-2 text-sm text-ink">
+            <p className="mt-2 text-[14px] text-ink-muted">{plan.tagline}</p>
+            <ul className="mt-6 flex-1 space-y-2 text-[14px] text-ink-muted">
               {plan.features.map((f) => (
-                <li key={f}>✓ {f}</li>
+                <li key={f} className="flex gap-2">
+                  <span className="text-accent">✓</span>
+                  {f}
+                </li>
               ))}
             </ul>
-            {billingEnabled && plan.id !== activePlanId ? (
+            {plan.id === activePlanId ? (
+              <p className="mt-8 text-center text-[13px] font-medium text-moss">Active</p>
+            ) : billingEnabled ? (
               <Button
                 variant={plan.popular ? "accent" : "secondary"}
                 className="mt-8 w-full"
                 disabled={checkoutPlanId === plan.id}
-                onClick={() =>
-                  void startSubscriptionCheckout(plan.id as "standard" | "premium" | "enterprise")
-                }
+                onClick={() => void startSubscriptionCheckout(plan.id as "standard" | "premium" | "enterprise")}
               >
-                {checkoutPlanId === plan.id ? "Redirecting…" : `Upgrade`}
+                {checkoutPlanId === plan.id
+                  ? "Working…"
+                  : checkoutMode === "demo"
+                    ? `Activate ${plan.name}`
+                    : `Upgrade to ${plan.name}`}
               </Button>
-            ) : plan.id === activePlanId ? (
-              <p className="mt-8 text-center text-xs text-ink-muted">Active subscription</p>
             ) : (
-              <p className="mt-8 text-center text-xs text-ink-muted">Enable billing on API for checkout</p>
+              <p className="mt-8 text-center text-[13px] text-ink-muted">
+                Checkout unavailable — contact support to enable billing.
+              </p>
             )}
           </article>
         ))}
       </div>
 
-      <div className="pt-4">
+      <div className="pt-2">
         <h2 className="text-lg font-bold text-night">Optional guided setup</h2>
         <p className="mt-1 text-[15px] text-ink-muted">
-          One-time onboarding call — not required if you&apos;re comfortable in the console.
+          One-time onboarding — not required if you&apos;re comfortable in the console.
         </p>
         <SetupOfferCard
           billingEnabled={billingEnabled}
@@ -210,14 +265,6 @@ export default function DashboardPricingPage() {
           fallbackLabel="Continue free setup"
         />
       </div>
-
-      <p className="text-[13px] text-ink-muted">
-        Shareable marketing page:{" "}
-        <LinkButton href="/pricing" variant="ghost" size="sm" className="inline-flex !px-1">
-          /pricing
-        </LinkButton>{" "}
-        — if you&apos;re already signed in, it keeps you in this workspace.
-      </p>
     </div>
   );
 }

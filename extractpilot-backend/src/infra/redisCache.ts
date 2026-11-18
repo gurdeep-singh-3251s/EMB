@@ -38,6 +38,18 @@ export async function cacheSet(
   }
 }
 
+export async function cacheDel(redis: Redis | null, key: string, timeoutMs = 500): Promise<void> {
+  if (!isRedisAvailable(redis)) return;
+  try {
+    await Promise.race([
+      redis.del(key),
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), timeoutMs)),
+    ]);
+  } catch {
+    // ignore
+  }
+}
+
 export function tenantCacheKey(prefix: string, tenantUserId: string | null, suffix = ""): string {
   const shard = tenantUserId ? `t:${tenantUserId}` : "anon";
   return `ep:cache:${prefix}:${shard}${suffix ? `:${suffix}` : ""}`;

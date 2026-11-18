@@ -33,6 +33,7 @@ export default function PricingPage() {
   const signedIn = Boolean(user);
   const [plans, setPlans] = useState<PlanCard[]>([]);
   const [billingEnabled, setBillingEnabled] = useState(false);
+  const [checkoutMode, setCheckoutMode] = useState<"stripe" | "demo" | "off">("off");
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
@@ -49,6 +50,7 @@ export default function PricingPage() {
       if (res.success) {
         setPlans(res.data.plans as PlanCard[]);
         setBillingEnabled(Boolean(res.data.billingEnabled));
+        setCheckoutMode(res.data.checkoutMode ?? (res.data.billingEnabled ? "stripe" : "off"));
       }
     });
   }, []);
@@ -216,9 +218,11 @@ export default function PricingPage() {
                   }
                 >
                   {checkoutPlanId === plan.id
-                    ? "Redirecting…"
+                    ? "Working…"
                     : signedIn
-                      ? `Upgrade — ${plan.name}`
+                      ? checkoutMode === "demo"
+                        ? `Activate ${plan.name}`
+                        : `Upgrade — ${plan.name}`
                       : `Get ${plan.name}`}
                 </Button>
               ) : (

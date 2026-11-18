@@ -121,6 +121,19 @@ export function loadEnv() {
     },
     /** When false (default), Stripe checkout/portal are disabled — beta invite-only mode. */
     enableBilling: process.env.ENABLE_BILLING === "true",
+    /**
+     * Instant plan upgrades without Stripe (demo / closed beta).
+     * Defaults to ON when Stripe checkout is not fully configured.
+     * Set ENABLE_DEMO_BILLING=false to force paid checkout only via Stripe.
+     */
+    enableDemoBilling: (() => {
+      const explicit = process.env.ENABLE_DEMO_BILLING?.trim();
+      if (explicit === "true") return true;
+      if (explicit === "false") return false;
+      const stripeReady =
+        process.env.ENABLE_BILLING === "true" && Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+      return !stripeReady;
+    })(),
     /** Closed beta: selected users only; surfaced in API + UI copy. */
     betaInviteOnly: process.env.BETA_INVITE_ONLY !== "false",
     /**
