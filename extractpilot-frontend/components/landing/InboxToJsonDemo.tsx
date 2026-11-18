@@ -41,7 +41,7 @@ export function InboxToJsonDemo({ className = "", animated = true }: InboxToJson
   return (
     <div
       ref={root}
-      className={`relative overflow-hidden rounded-[1.75rem] border border-ink/[0.08] bg-paper-elevated/95 p-6 shadow-premium backdrop-blur-xl sm:p-7 ${className}`}
+      className={`relative overflow-hidden rounded-[1.75rem] border border-ink/[0.08] bg-paper-elevated/95 p-4 shadow-premium backdrop-blur-xl sm:p-5 ${className}`}
       aria-hidden
     >
       <div
@@ -63,8 +63,8 @@ export function InboxToJsonDemo({ className = "", animated = true }: InboxToJson
         </p>
       </div>
 
-      <div className="relative mt-5 grid gap-4 sm:grid-cols-[1fr_1.05fr]">
-        <div className="demo-envelope relative min-h-[8rem] overflow-hidden rounded-2xl border border-ink/[0.08] bg-gradient-to-br from-paper to-accent-soft/40 p-4">
+      <div className="relative mt-3 grid gap-3 sm:grid-cols-[1fr_1.05fr]">
+        <div className="demo-envelope relative overflow-hidden rounded-2xl border border-ink/[0.08] bg-gradient-to-br from-paper to-accent-soft/40 p-3.5">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-inverse text-[11px] font-bold text-inverse-fg">
               HL
@@ -79,7 +79,7 @@ export function InboxToJsonDemo({ className = "", animated = true }: InboxToJson
           />
         </div>
 
-        <pre className="relative min-h-[8rem] overflow-hidden rounded-2xl border border-white/10 bg-panel-strong p-4 font-mono text-[12px] leading-relaxed text-panel-strong-fg/90">
+        <pre className="relative overflow-hidden rounded-2xl border border-white/10 bg-panel-strong p-3.5 font-mono text-[12px] leading-relaxed text-panel-strong-fg/90">
           <div
             className="pointer-events-none absolute inset-0 opacity-40"
             style={{

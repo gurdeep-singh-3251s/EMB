@@ -128,7 +128,7 @@ export default function PricingPage() {
       <main className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
         <div ref={headRef} className="mx-auto max-w-3xl text-center">
           <p className="section-label-accent">Simple pricing</p>
-          <h1 className="mt-3 font-display text-4xl font-extrabold tracking-tight text-night sm:text-5xl">
+          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-night sm:text-5xl">
             Start free. Scale when volume grows.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-muted">

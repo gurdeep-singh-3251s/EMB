@@ -80,7 +80,7 @@ export default function LoginPage() {
       <main className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-10">
         <section className="login-brand">
           <p className="section-label-accent">Welcome to ExtractPilot</p>
-          <h1 className="mt-4 max-w-xl font-display text-[2.4rem] font-extrabold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
+          <h1 className="mt-4 max-w-xl font-display text-[2.4rem] font-bold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
             One click. Your inbox workspace is ready.
           </h1>
           <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-ink-muted sm:text-[18px]">

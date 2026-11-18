@@ -167,23 +167,23 @@ export function LandingPage() {
         </div>
       </header>
 
-      <section className="hero-grid-line surface-noise relative overflow-hidden border-b border-ink/[0.06]">
+      <section className="hero-grid-line surface-noise relative flex min-h-[calc(100svh-4.5rem)] items-center overflow-hidden border-b border-ink/[0.06]">
         <HeroAmbient />
-        <div className="relative mx-auto grid max-w-[1120px] gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
+        <div className="relative mx-auto grid w-full max-w-[1120px] gap-8 px-6 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10 lg:py-8">
           <div className="hero-copy">
-            <p className="font-display text-3xl font-extrabold tracking-tight text-night sm:text-4xl">ExtractPilot</p>
-            <h1 className="mt-5 font-display text-[2.35rem] font-extrabold leading-[1.06] tracking-tight text-night sm:text-5xl lg:text-[3.15rem]">
+            <p className="font-display text-2xl font-semibold tracking-tight text-night">ExtractPilot</p>
+            <h1 className="mt-3 font-display text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-night sm:text-[2rem] lg:text-[2.35rem]">
               Automate the inbox that never stops —{" "}
               <span className="bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
                 structured data in minutes
               </span>
               .
             </h1>
-            <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-muted lg:text-[18px]">
+            <p className="mt-4 max-w-lg text-[15px] leading-snug text-ink-muted sm:text-[16px]">
               For sales, ecommerce, support, ops, and anyone drowning in email. Connect mailboxes, write requirements in
               plain language, pick from 50+ AI models, and push clean fields into your tools.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               <LinkButton href={startHref} variant="accent" size="lg">
                 {signedIn ? "Open workspace" : "Start free"}
               </LinkButton>
@@ -191,7 +191,7 @@ export function LandingPage() {
                 See Docs
               </LinkButton>
             </div>
-            <div className="mt-10 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               {providers.map((name) => (
                 <span key={name} className="provider-chip pill">
                   {name}
