@@ -22,6 +22,7 @@ const enhanceBodySchema = z.object({
   userQuery: z.string().min(1).max(4000),
   goal: z.string().max(500).optional(),
   model: z.string().max(128).optional(),
+  currentSchema: z.record(z.unknown()).optional(),
 });
 
 const abCompareBodySchema = z.object({
@@ -128,6 +129,7 @@ class PromptStudioHandler extends BaseRestController {
         userQuery: result.userQuery,
         rationale: result.rationale,
         modelUsed: result.modelUsed,
+        outputSchema: result.outputSchema ?? null,
       },
       null,
       200,

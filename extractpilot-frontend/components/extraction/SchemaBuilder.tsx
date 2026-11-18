@@ -70,7 +70,7 @@ export function SchemaBuilder({
       {rows.map((row, i) => (
         <div
           key={row.id}
-          className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 md:grid-cols-[1.2fr_1fr_1.5fr_auto]"
+          className="grid gap-3 rounded-2xl border border-ink/[0.08] bg-paper p-4 md:grid-cols-[1.2fr_1fr_1.5fr_auto]"
         >
           <input
             className="input-field"

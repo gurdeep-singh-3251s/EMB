@@ -10,9 +10,9 @@ import { GuardedLink } from "@/components/ui/GuardedLink";
 import { useExtractionRun } from "@/contexts/ExtractionRunContext";
 
 const STEPS = [
-  { id: 1, title: "Define extraction" },
-  { id: 2, title: "Connect mailbox" },
-  { id: 3, title: "Run pipeline" },
+  { id: 1, title: "Write requirements" },
+  { id: 2, title: "Connect mailboxes" },
+  { id: 3, title: "Extract Now" },
 ];
 
 function WorkflowContent() {
@@ -28,12 +28,12 @@ function WorkflowContent() {
   return (
     <div className="space-y-5">
       <div className="animate-fade-in-up">
-        <p className="section-label">Pipeline</p>
-        <h1 className="mt-1.5 font-display text-2xl font-bold text-slate-950 lg:text-3xl">
-          Setup & run extraction
+        <p className="section-label">Get started</p>
+        <h1 className="mt-1.5 font-display text-2xl font-bold text-night lg:text-3xl">
+          Get set up in three steps
         </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-slate-600">
-          Three steps — then review structured output on Results.
+        <p className="mt-1.5 max-w-2xl text-sm text-ink-muted">
+          Write requirements, connect mailboxes, then Extract Now.
         </p>
       </div>
 

@@ -7,13 +7,13 @@ export type PromptTemplate = {
   outputSchema: Record<string, { type: string; description: string; nullable?: boolean }>;
 };
 
-/** Curated extraction blueprints — real-estate first for brokerage demos. */
+/** Curated extraction blueprints — optional starters when users need inspiration. */
 export const PROMPT_TEMPLATES: PromptTemplate[] = [
   {
     id: "re-buyer-leads",
-    name: "Buyer leads",
-    category: "Real estate",
-    description: "Capture buyer inquiries: budget, beds/baths, areas, timeline, and contact.",
+    name: "Inbound leads",
+    category: "Sales",
+    description: "Capture inbound inquiries: contact, budget/range, preferences, and timeline.",
     userQuery:
       "Find emails from prospective buyers asking about homes, tours, or availability. Extract contact details, budget, preferred areas, beds/baths, and buying timeline. Do not invent values.",
     outputSchema: {
@@ -33,8 +33,8 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   },
   {
     id: "re-seller-listings",
-    name: "Seller & listing intake",
-    category: "Real estate",
+    name: "Listing / seller intake",
+    category: "Operations",
     description: "Homeowners wanting to list — address, price expectations, property type.",
     userQuery:
       "Identify seller or listing intake emails. Extract property address, expected price, property type, occupancy, and owner contact. Prefer explicit facts over guesses.",
@@ -55,8 +55,8 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   },
   {
     id: "re-showing-requests",
-    name: "Showing & tour requests",
-    category: "Real estate",
+    name: "Meeting & tour requests",
+    category: "Operations",
     description: "Tour scheduling: listing ID/address, preferred times, agent.",
     userQuery:
       "Extract showing or open-house tour requests. Capture listing address or MLS id, preferred dates/times, attendees, and any access notes.",
@@ -74,7 +74,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   {
     id: "re-offer-terms",
     name: "Offer & LOI terms",
-    category: "Real estate",
+    category: "Operations",
     description: "Offers and letters of intent — price, contingencies, close date.",
     userQuery:
       "Find purchase offers, counter-offers, or LOIs. Extract offer price, earnest money, contingencies, financing type, and proposed closing date. Never invent legal terms.",
@@ -93,7 +93,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   {
     id: "re-closing-escrow",
     name: "Closing & escrow updates",
-    category: "Real estate",
+    category: "Operations",
     description: "Title/escrow status, wire info flags, milestone dates.",
     userQuery:
       "Extract closing and escrow status emails. Capture file number, closing date, title company, outstanding conditions, and whether wire instructions are mentioned (flag only — do not copy full wire details).",
@@ -110,8 +110,8 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   },
   {
     id: "re-tenant-maintenance",
-    name: "Tenant & maintenance",
-    category: "Real estate",
+    name: "Support & maintenance tickets",
+    category: "Operations",
     description: "Property management tickets from tenants.",
     userQuery:
       "Classify tenant maintenance and lease emails. Extract unit/address, issue type, urgency, and preferred access window.",
@@ -130,7 +130,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
     category: "Finance",
     description: "Office vendors, marketing, and contractor invoices.",
     userQuery:
-      "Find invoices and payment requests for the brokerage. Extract vendor, amounts, due dates, and reference numbers.",
+      "Find invoices and payment requests for your company. Extract vendor, amounts, due dates, and reference numbers.",
     outputSchema: {
       vendor_name: { type: "string", description: "Vendor name", nullable: true },
       invoice_number: { type: "string", description: "Invoice number", nullable: true },
@@ -145,7 +145,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
     id: "support-tickets",
     name: "Client support",
     category: "Customer success",
-    description: "Client service issues after closing or during lease.",
+    description: "Client service issues from active clients.",
     userQuery:
       "Extract client support emails: issue summary, property, urgency, and requested action.",
     outputSchema: {

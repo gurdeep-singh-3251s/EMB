@@ -197,11 +197,21 @@ export const restClient = {
     models() {
       return apiFetch<LlmModelsResponse>("/api/v1/llm-models");
     },
-    enhance(body: { userQuery: string; goal?: string; model?: string }) {
-      return apiFetch<{ userQuery: string; rationale?: string; modelUsed: string }>(
-        "/api/v1/prompt-studio/enhance",
-        { method: "POST", body: JSON.stringify(body) },
-      );
+    enhance(body: {
+      userQuery: string;
+      goal?: string;
+      model?: string;
+      currentSchema?: Record<string, unknown>;
+    }) {
+      return apiFetch<{
+        userQuery: string;
+        rationale?: string;
+        modelUsed: string;
+        outputSchema?: Record<string, FieldSpec> | null;
+      }>("/api/v1/prompt-studio/enhance", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
     },
     enhancements() {
       return apiFetch<{ items: Array<Record<string, unknown>> }>("/api/v1/prompt-studio/enhancements");

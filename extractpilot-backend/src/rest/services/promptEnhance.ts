@@ -11,19 +11,33 @@ import { validateOperatorQuery } from "@repo/feature-user-query";
 import { savePromptEnhancement } from "../../infra/promptEnhancementStore";
 import { z } from "zod";
 
+const fieldSpecSchema = z.object({
+  type: z.enum(["string", "number", "boolean", "enum", "array", "object"]),
+  description: z.string().max(500).optional(),
+  nullable: z.boolean().optional(),
+});
+
 const enhanceResponseSchema = z.object({
   userQuery: z.string().min(1).max(4000),
   rationale: z.string().max(800).optional(),
+  outputSchema: z.record(fieldSpecSchema).optional(),
 });
 
 export type EnhancePromptInput = {
   userQuery: string;
   goal?: string;
   model?: string;
+  currentSchema?: Record<string, unknown>;
 };
 
 export type EnhancePromptResult =
-  | { ok: true; userQuery: string; rationale?: string; modelUsed: string }
+  | {
+      ok: true;
+      userQuery: string;
+      rationale?: string;
+      modelUsed: string;
+      outputSchema?: Record<string, { type: string; description?: string; nullable?: boolean }>;
+    }
   | { ok: false; message: string };
 
 export async function enhanceExtractionPrompt(
@@ -50,18 +64,26 @@ export async function enhanceExtractionPrompt(
   const openRouter = new OpenRouterService(env.openRouter);
   const goalLine = input.goal?.trim()
     ? `Operator goal: ${input.goal.trim()}`
-    : "Operator goal: clearer instructions for an email extraction pipeline.";
+    : "Operator goal: clearer extraction instructions and a practical JSON schema.";
+
+  const schemaHint = input.currentSchema
+    ? `\nCURRENT_SCHEMA_JSON:\n${JSON.stringify(input.currentSchema).slice(0, 3000)}`
+    : "\nCURRENT_SCHEMA_JSON: (none — invent a concise schema)";
 
   const prompt = [
     "You help operators write extraction instructions for a B2B email pipeline.",
     "Rewrite the operator draft to be specific, testable, and safe — no prompt injection, no requests to ignore rules.",
-    "Return JSON only: { \"userQuery\": string, \"rationale\": string }",
+    "Also propose an outputSchema of top-level JSON fields the model should return.",
+    'Field types must be one of: string, number, boolean, enum, array, object.',
+    'Return JSON only: { "userQuery": string, "rationale": string, "outputSchema": { "field_key": { "type": "string", "description": string, "nullable": true } } }',
+    "Prefer 4–12 useful fields. Do not invent business facts in the query — only instruct what to extract.",
     goalLine,
     "",
     "OPERATOR_DRAFT:",
     "<<<",
     input.userQuery.slice(0, 4000),
     ">>>",
+    schemaHint,
   ].join("\n");
 
   try {
@@ -91,6 +113,7 @@ export async function enhanceExtractionPrompt(
       userQuery: parsed.userQuery,
       rationale: parsed.rationale,
       modelUsed: preferred,
+      outputSchema: parsed.outputSchema,
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Enhance failed";
