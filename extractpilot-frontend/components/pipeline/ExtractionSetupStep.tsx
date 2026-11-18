@@ -211,14 +211,9 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
 
   return (
     <div ref={rootRef} className="space-y-3">
-      <div className="setup-pane flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-base font-bold text-night sm:text-lg">1. Write requirements</h2>
-          <p className="text-[13px] text-ink-muted">Plain language in → fields out. Use Enhance if you want help.</p>
-        </div>
-        <Button variant="secondary" size="sm" onClick={() => setTemplatesOpen(true)}>
-          Not sure? See templates
-        </Button>
+      <div className="setup-pane">
+        <h2 className="text-base font-bold text-night sm:text-lg">1. Write requirements</h2>
+        <p className="text-[13px] text-ink-muted">Plain language in → fields out. Use Enhance if you want help.</p>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
@@ -278,7 +273,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
         <Button variant="accent" size="sm" onClick={() => void save()} disabled={saving || loading}>
           {saving ? "Saving…" : "Save & continue →"}
         </Button>
-        <Button variant="secondary" size="sm" onClick={() => setTemplatesOpen(true)}>
+        <Button variant="accent" size="sm" onClick={() => setTemplatesOpen(true)}>
           Not sure? See templates
         </Button>
         {message ? <p className="text-[12px] font-medium text-moss">{message}</p> : null}
