@@ -4,6 +4,7 @@ type IconName =
   | "results"
   | "emails"
   | "developers"
+  | "integrations"
   | "plans"
   | "settings";
 
@@ -13,6 +14,7 @@ const paths: Record<IconName, string> = {
   results: "M6 18V8l4-2v12H6zm8 0V6l4 2v10h-4z",
   emails: "M5 7h14v10H5V7zm0 2.5 7 4.5 7-4.5",
   developers: "M8 9l-3 3 3 3M16 9l3 3-3 3M13 6l-2 12",
+  integrations: "M8 12h8M7 8h3v8H7V8zm7 0h3v8h-3V8z",
   plans: "M6 6h12v5H6V6zm0 7h12v5H6v-5z",
   settings: "M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm7-1v2m0 8v2M5 7v2m0 8v2",
 };

@@ -31,6 +31,7 @@ const primaryNav: NavItem[] = [
 const secondaryNav: NavItem[] = [
   { href: "/dashboard/review", label: "Review queue", icon: "emails", prefetch: null },
   { href: "/dashboard/emails", label: "All emails", icon: "emails", prefetch: "emails" },
+  { href: "/dashboard/integrations", label: "Integrations", icon: "integrations", prefetch: null },
   { href: "/dashboard/ops", label: "Health", icon: "overview", prefetch: null },
   { href: "/dashboard/developers", label: "API", icon: "developers", prefetch: null },
   { href: "/dashboard/pricing", label: "Plans", icon: "plans", prefetch: null },

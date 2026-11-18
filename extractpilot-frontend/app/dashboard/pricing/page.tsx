@@ -204,12 +204,18 @@ export default function DashboardPricingPage() {
           onCheckout={billingEnabled ? startSetupCheckout : undefined}
           checkoutLoading={setupLoading}
           className="mt-4"
+          fallbackHref="/dashboard/workflow?step=1"
+          fallbackLabel="Continue free setup"
         />
       </div>
 
-      <LinkButton href="/pricing" variant="secondary" size="sm">
-        View public pricing page
-      </LinkButton>
+      <p className="text-[13px] text-ink-muted">
+        Shareable marketing page:{" "}
+        <LinkButton href="/pricing" variant="ghost" size="sm" className="inline-flex !px-1">
+          /pricing
+        </LinkButton>{" "}
+        — if you&apos;re already signed in, it keeps you in this workspace.
+      </p>
     </div>
   );
 }

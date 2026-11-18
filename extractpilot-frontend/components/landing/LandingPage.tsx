@@ -9,6 +9,7 @@ import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
 import { HeroAmbient } from "@/components/motion/HeroAmbient";
 import { MotionCard } from "@/components/motion/MotionCard";
+import { useAuth } from "@/providers/AuthProvider";
 
 const providers = ["Agent Gmail", "Office Outlook", "Transaction desk", "Property mgmt", "Any IMAP"];
 
@@ -46,6 +47,10 @@ const outcomes = [
 ];
 
 export function LandingPage() {
+  const { user, loading: authLoading } = useAuth();
+  const signedIn = Boolean(user);
+  const startHref = signedIn ? "/dashboard" : "/login?next=/dashboard";
+  const docsHref = signedIn ? "/dashboard/developers" : "/docs";
   const root = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -112,12 +117,21 @@ export function LandingPage() {
             <Wordmark subtitle="For real estate teams" />
           </Link>
           <div className="flex items-center gap-2">
+            <LinkButton href="/docs" variant="ghost" size="sm">
+              Docs
+            </LinkButton>
             <LinkButton href="/pricing" variant="ghost" size="sm">
               Pricing
             </LinkButton>
-            <LinkButton href="/login" variant="primary" size="sm">
-              Sign in
-            </LinkButton>
+            {authLoading ? null : signedIn ? (
+              <LinkButton href="/dashboard" variant="primary" size="sm">
+                Open workspace
+              </LinkButton>
+            ) : (
+              <LinkButton href="/login?next=/dashboard" variant="primary" size="sm">
+                Sign in
+              </LinkButton>
+            )}
           </div>
         </div>
       </header>
@@ -133,14 +147,14 @@ export function LandingPage() {
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-muted lg:text-[18px]">
               Built for real-estate managers and agents: connect multiple Gmails, run industry prompts, pick from 50+ AI
-              models, and review confidence scores before anything hits your CRM.
+              models, and push clean fields into the tools your team already uses.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <LinkButton href="/login" variant="accent" size="lg">
-                Book a live demo workspace
+              <LinkButton href={startHref} variant="accent" size="lg">
+                {signedIn ? "Open workspace" : "Start for free"}
               </LinkButton>
-              <LinkButton href="/pricing" variant="secondary" size="lg">
-                See Team · 1,000 emails/wk
+              <LinkButton href={docsHref} variant="secondary" size="lg">
+                See Docs — how to integrate
               </LinkButton>
             </div>
             <div className="mt-10 flex flex-wrap gap-2">
@@ -249,11 +263,11 @@ export function LandingPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <LinkButton href="/login" variant="accent" size="lg">
-              Start demo
+            <LinkButton href={startHref} variant="accent" size="lg">
+              {signedIn ? "Open workspace" : "Start for free"}
             </LinkButton>
-            <LinkButton href="/pricing" variant="inverse" size="lg">
-              Compare plans
+            <LinkButton href={docsHref} variant="inverse" size="lg">
+              See Docs
             </LinkButton>
           </div>
         </div>
@@ -269,8 +283,11 @@ export function LandingPage() {
             <Link href="/terms" className="hover:text-night">
               Terms
             </Link>
-            <Link href="/dashboard" className="font-semibold text-accent hover:text-accent-light">
-              Dashboard ↗
+            <Link href="/docs" className="hover:text-night">
+              Docs
+            </Link>
+            <Link href={signedIn ? "/dashboard" : "/login?next=/dashboard"} className="font-semibold text-accent hover:text-accent-light">
+              {signedIn ? "Dashboard ↗" : "Start free ↗"}
             </Link>
           </div>
         </div>

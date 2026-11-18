@@ -9,6 +9,9 @@ type SetupOfferCardProps = {
   onCheckout?: () => void;
   checkoutLoading?: boolean;
   className?: string;
+  /** When checkout is unavailable — keep signed-in users in the workspace. */
+  fallbackHref?: string;
+  fallbackLabel?: string;
 };
 
 export function SetupOfferCard({
@@ -16,6 +19,8 @@ export function SetupOfferCard({
   onCheckout,
   checkoutLoading,
   className = "",
+  fallbackHref = "/login?next=/dashboard",
+  fallbackLabel = "Start free in the console",
 }: SetupOfferCardProps) {
   return (
     <article className={`saas-card p-6 md:p-8 ${className}`}>
@@ -54,8 +59,8 @@ export function SetupOfferCard({
           {checkoutLoading ? "Redirecting…" : "Request guided setup"}
         </Button>
       ) : (
-        <LinkButton href="/login" variant="secondary" size="lg" className="mt-6">
-          Sign in to use the free console
+        <LinkButton href={fallbackHref} variant="secondary" size="lg" className="mt-6">
+          {fallbackLabel}
         </LinkButton>
       )}
     </article>

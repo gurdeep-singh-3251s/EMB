@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
+import { useAuth } from "@/providers/AuthProvider";
 
 type PlanCard = {
   id: PlanId;
@@ -20,9 +21,12 @@ type PlanCard = {
 };
 
 export default function PricingPage() {
+  const { user, loading: authLoading } = useAuth();
+  const signedIn = Boolean(user);
   const [plans, setPlans] = useState<PlanCard[]>([]);
   const [billingEnabled, setBillingEnabled] = useState(false);
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
   const headRefBinding = useRef<HTMLDivElement>(null);
 
@@ -42,25 +46,45 @@ export default function PricingPage() {
   }, []);
 
   const startSetupCheckout = useCallback(async () => {
+    if (!signedIn) {
+      window.location.href = "/login?next=/dashboard/pricing";
+      return;
+    }
     setSetupLoading(true);
+    setCheckoutError(null);
     const res = await restClient.billing.checkoutSetup();
     setSetupLoading(false);
     if (res.success && res.data.url) {
       window.location.href = res.data.url;
+      return;
     }
-  }, []);
+    setCheckoutError(res.success ? "Checkout unavailable right now." : res.message);
+  }, [signedIn]);
 
-  const startSubscriptionCheckout = useCallback(async (planId: "standard" | "premium" | "enterprise") => {
-    setCheckoutPlanId(planId);
-    const res = await restClient.billing.checkout(planId);
-    setCheckoutPlanId(null);
-    if (res.success && res.data.url) {
-      window.location.href = res.data.url;
-    }
-  }, []);
+  const startSubscriptionCheckout = useCallback(
+    async (planId: "standard" | "premium" | "enterprise") => {
+      if (!signedIn) {
+        window.location.href = `/login?next=${encodeURIComponent(`/dashboard/pricing`)}`;
+        return;
+      }
+      setCheckoutPlanId(planId);
+      setCheckoutError(null);
+      const res = await restClient.billing.checkout(planId);
+      setCheckoutPlanId(null);
+      if (res.success && res.data.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+      setCheckoutError(res.success ? "Checkout unavailable right now." : res.message);
+    },
+    [signedIn],
+  );
 
   const paidPlans = plans.filter((p) => p.id !== "free");
   const freePlan = plans.find((p) => p.id === "free");
+  const workspaceHref = "/dashboard/pricing";
+  const startHref = signedIn ? "/dashboard" : "/login?next=/dashboard";
+  const docsHref = signedIn ? "/dashboard/developers" : "/docs";
 
   return (
     <div className="min-h-screen bg-paper">
@@ -74,9 +98,18 @@ export default function PricingPage() {
             <LinkButton href="/" variant="ghost" size="sm">
               Home
             </LinkButton>
-            <LinkButton href="/login" variant="primary" size="sm">
-              Sign in
+            <LinkButton href={docsHref} variant="ghost" size="sm">
+              Docs
             </LinkButton>
+            {authLoading ? null : signedIn ? (
+              <LinkButton href="/dashboard" variant="primary" size="sm">
+                Open workspace
+              </LinkButton>
+            ) : (
+              <LinkButton href="/login?next=/dashboard" variant="primary" size="sm">
+                Sign in
+              </LinkButton>
+            )}
           </div>
         </div>
       </header>
@@ -90,19 +123,12 @@ export default function PricingPage() {
             <strong className="font-semibold text-night">1,000 emails / week</strong> and{" "}
             <strong className="font-semibold text-night">20+ AI models</strong>.
           </p>
-          <ol className="mt-6 list-decimal space-y-2 pl-5 text-[15px] text-ink-muted">
-            <li>
-              <strong className="font-semibold text-night">Start free</strong> — demo on one agent inbox with RE prompts.
-            </li>
-            <li>
-              <strong className="font-semibold text-night">Team at $29.99</strong> — 1,000 emails/week + 20+ models for
-              managers.
-            </li>
-            <li>
-              <strong className="font-semibold text-night">Connect your workspace</strong> — optional white-glove setup
-              for the brokerage.
-            </li>
-          </ol>
+          {signedIn ? (
+            <p className="mt-4 rounded-2xl border border-moss/25 bg-moss/10 px-4 py-3 text-[14px] text-night">
+              You&apos;re signed in as <strong>{user?.email}</strong>. Manage upgrades in your workspace — no second
+              login needed.
+            </p>
+          ) : null}
           {billingEnabled ? (
             <p className="mt-4 text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
           ) : (
@@ -111,6 +137,11 @@ export default function PricingPage() {
               {` ${BETA_ACCESS_NOTICE}`}
             </p>
           )}
+          {checkoutError ? (
+            <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900">
+              {checkoutError}
+            </p>
+          ) : null}
         </div>
 
         <div className="mt-14">
@@ -133,8 +164,8 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <LinkButton href="/login" variant="accent" className="mt-8 w-full">
-                Start free
+              <LinkButton href={startHref} variant="accent" className="mt-8 w-full">
+                {signedIn ? "Open workspace" : "Start free"}
               </LinkButton>
             </article>
           ) : null}
@@ -169,11 +200,19 @@ export default function PricingPage() {
                     void startSubscriptionCheckout(plan.id as "standard" | "premium" | "enterprise")
                   }
                 >
-                  {checkoutPlanId === plan.id ? "Redirecting…" : `Subscribe — ${plan.name}`}
+                  {checkoutPlanId === plan.id
+                    ? "Redirecting…"
+                    : signedIn
+                      ? `Upgrade — ${plan.name}`
+                      : `Sign in to get ${plan.name}`}
                 </Button>
               ) : (
-                <LinkButton href="/login" variant={plan.popular ? "accent" : "secondary"} className="mt-8 w-full">
-                  Sign in to upgrade later
+                <LinkButton
+                  href={signedIn ? workspaceHref : `/login?next=${encodeURIComponent(workspaceHref)}`}
+                  variant={plan.popular ? "accent" : "secondary"}
+                  className="mt-8 w-full"
+                >
+                  {signedIn ? "Manage in workspace" : "Sign in to upgrade later"}
                 </LinkButton>
               )}
             </article>
@@ -190,6 +229,8 @@ export default function PricingPage() {
             onCheckout={billingEnabled ? startSetupCheckout : undefined}
             checkoutLoading={setupLoading}
             className="mt-4"
+            fallbackHref={signedIn ? "/dashboard/workflow?step=1" : "/login?next=/dashboard"}
+            fallbackLabel={signedIn ? "Continue setup in workspace" : "Start free in the console"}
           />
         </div>
       </main>

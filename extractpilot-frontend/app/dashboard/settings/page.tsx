@@ -55,13 +55,6 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  async function saveIntegrations() {
-    if (!integrations) return;
-    setIntegrationMsg(null);
-    const res = await restClient.integrations.patch(integrations);
-    setIntegrationMsg(res.success ? res.message : res.message);
-  }
-
   async function openBillingPortal() {
     setBillingPortalLoading(true);
     const res = await restClient.billing.portal();
@@ -149,51 +142,17 @@ export default function SettingsPage() {
 
       <Panel
         title="Webhooks & notifications"
-        description="We POST JSON on extraction.completed and extraction.failed. Slack uses incoming-webhook URLs."
+        description="Manage Slack + CRM delivery on the Integrations page — same settings, clearer tooling map for brokerages."
       >
+        <a href="/dashboard/integrations" className="inline-flex text-sm font-semibold text-accent hover:underline">
+          Open Connect your tools →
+        </a>
         {integrations ? (
-          <div className="space-y-3 text-sm">
-            <label className="block">
-              <span className="text-ink-muted">Customer webhook URL</span>
-              <input
-                className="input-field mt-1 font-mono text-xs"
-                value={integrations.webhookUrl ?? ""}
-                onChange={(e) => setIntegrations({ ...integrations, webhookUrl: e.target.value || null })}
-                placeholder="https://your-app.com/hooks/extractpilot"
-              />
-            </label>
-            <label className="block">
-              <span className="text-ink-muted">Slack incoming webhook</span>
-              <input
-                className="input-field mt-1 font-mono text-xs"
-                value={integrations.slackWebhookUrl ?? ""}
-                onChange={(e) => setIntegrations({ ...integrations, slackWebhookUrl: e.target.value || null })}
-                placeholder="https://hooks.slack.com/services/…"
-              />
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={integrations.notifyOnExtractionCompleted}
-                onChange={(e) => setIntegrations({ ...integrations, notifyOnExtractionCompleted: e.target.checked })}
-              />
-              Notify on completed / partial extraction
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={integrations.notifyOnFailure}
-                onChange={(e) => setIntegrations({ ...integrations, notifyOnFailure: e.target.checked })}
-              />
-              Notify on failures
-            </label>
-            <Button variant="accent" size="sm" onClick={() => void saveIntegrations()}>
-              Save integrations
-            </Button>
-          </div>
-        ) : (
-          <p className="text-sm text-ink-muted">Loading…</p>
-        )}
+          <p className="mt-3 text-xs text-ink-muted">
+            Webhook {integrations.webhookUrl ? "connected" : "not set"} · Slack{" "}
+            {integrations.slackWebhookUrl ? "connected" : "not set"}
+          </p>
+        ) : null}
         {integrationMsg ? <p className="mt-2 text-sm text-moss">{integrationMsg}</p> : null}
       </Panel>
 
