@@ -48,7 +48,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const prefetchResults = usePrefetchUserQueryResults();
   const prefetchEmails = usePrefetchEmailListPage();
   const mainRef = useRef<HTMLElement>(null);
-  const asideRef = useRef<HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useLayoutEffect(() => {
@@ -56,25 +55,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!main) return;
     gsap.fromTo(main, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" });
   }, [pathname]);
-
-  useLayoutEffect(() => {
-    const aside = asideRef.current;
-    if (!aside) return;
-    const links = aside.querySelectorAll<HTMLElement>(".nav-item");
-    gsap.fromTo(
-      links,
-      { opacity: 0, x: -10 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.4,
-        stagger: 0.03,
-        ease: "power2.out",
-        delay: 0.05,
-        clearProps: "opacity,transform",
-      },
-    );
-  }, []);
 
   useLayoutEffect(() => {
     setMobileOpen(false);
@@ -110,7 +90,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-0 flex-1 bg-transparent lg:grid lg:h-full lg:min-h-0 lg:grid-cols-[268px_1fr]">
       <aside
-        ref={asideRef}
         className={`border-b border-ink/[0.06] bg-paper-elevated backdrop-blur-xl lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:border-b-0 lg:border-r ${
           mobileOpen ? "block" : "hidden lg:block"
         }`}
