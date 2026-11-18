@@ -10,6 +10,7 @@ import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { useAuth } from "@/providers/AuthProvider";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type PlanCard = {
   id: PlanId;
@@ -95,6 +96,7 @@ export default function PricingPage() {
             <Wordmark />
           </div>
           <div className="flex gap-2">
+            <ThemeToggle />
             <LinkButton href="/" variant="ghost" size="sm">
               Home
             </LinkButton>

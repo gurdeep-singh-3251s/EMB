@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 const variants = {
   primary:
-    "bg-night text-paper shadow-sm hover:bg-night/90 focus-visible:ring-night disabled:bg-night/40 active:scale-[0.98]",
+    "bg-inverse text-inverse-fg shadow-sm hover:bg-inverse/90 focus-visible:ring-inverse disabled:bg-inverse/40 active:scale-[0.98]",
   accent:
     "bg-accent text-white shadow-glow hover:bg-accent-light focus-visible:ring-accent disabled:bg-accent/50 active:scale-[0.98]",
   secondary:

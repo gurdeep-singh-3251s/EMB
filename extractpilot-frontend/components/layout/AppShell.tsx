@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { DashboardNavIcon } from "@/components/ui/DashboardNavIcon";
 import { Stagger } from "@/components/motion/Stagger";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type NavItem = {
   href: string;
@@ -140,6 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <HeaderTitle pathname={pathname} />
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               {user ? (
                 <div className="hidden items-center gap-3 text-right sm:flex">
                   <div>

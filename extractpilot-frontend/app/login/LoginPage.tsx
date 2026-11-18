@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { getGoogleLoginUrl } from "@/lib/authSession";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const ERROR_MESSAGES: Record<string, string> = {
   oauth_denied: "Google sign-in was cancelled.",
@@ -35,7 +36,10 @@ export default function LoginPage() {
         </div>
       </aside>
 
-      <main className="flex min-h-[100dvh] items-center justify-center px-6 py-12 sm:px-8">
+      <main className="relative flex min-h-[100dvh] items-center justify-center px-6 py-12 sm:px-8">
+        <div className="absolute right-6 top-6">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-[420px]">
           <div className="saas-card p-8 shadow-ledger-lg sm:p-9">
             <div className="mb-8 flex items-center gap-3">

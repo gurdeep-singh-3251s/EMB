@@ -15,23 +15,23 @@ export function LogoMark({ className = "", size = "md", onDark = false }: LogoMa
       aria-hidden
       className={className}
     >
-      <rect width="40" height="40" rx="12" className={onDark ? "fill-paper" : "fill-night"} />
+      <rect width="40" height="40" rx="12" className={onDark ? "fill-paper" : "fill-inverse"} />
       <path
         d="M8 14h24v16H8V14z"
-        className={onDark ? "stroke-night" : "stroke-paper"}
+        className={onDark ? "stroke-night" : "stroke-inverse-fg"}
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <path
         d="M8 14l12 9 12-9"
-        className={onDark ? "stroke-night" : "stroke-paper"}
+        className={onDark ? "stroke-night" : "stroke-inverse-fg"}
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <rect x="23" y="22" width="7" height="5" rx="1" className="fill-accent" />
       <path
         d="M25 24.5h3M25 26h2"
-        className={onDark ? "stroke-night" : "stroke-paper"}
+        className={onDark ? "stroke-night" : "stroke-inverse-fg"}
         strokeWidth="0.75"
         strokeLinecap="round"
       />

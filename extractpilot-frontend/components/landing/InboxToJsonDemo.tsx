@@ -59,7 +59,7 @@ export function InboxToJsonDemo({ className = "", animated = true }: InboxToJson
           />
         </div>
 
-        <pre className="min-h-[7.5rem] rounded-2xl border border-ink/10 bg-night p-4 font-mono text-[12px] leading-relaxed text-white/90">
+        <pre className="min-h-[7.5rem] rounded-2xl border border-ink/10 bg-panel-strong p-4 font-mono text-[12px] leading-relaxed text-panel-strong-fg/90">
           <span className="text-accent-light">{"{"}</span>
           {"\n"}
           <span className="demo-json-line block pl-2">

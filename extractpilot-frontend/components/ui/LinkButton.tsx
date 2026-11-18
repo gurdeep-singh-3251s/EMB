@@ -4,14 +4,14 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 
 const variants = {
-  primary: "bg-night text-paper hover:bg-night/90 active:scale-[0.98]",
+  primary: "bg-inverse text-inverse-fg hover:bg-inverse/90 active:scale-[0.98]",
   accent: "bg-accent text-white hover:bg-accent-light shadow-glow active:scale-[0.98]",
   secondary:
     "border border-ink/10 bg-paper-elevated text-ink hover:border-ink/15 hover:bg-paper active:scale-[0.98]",
   ghost: "text-ink-muted hover:bg-ink/5 hover:text-ink active:scale-[0.98]",
   inverse:
-    "border border-paper/20 bg-paper/10 text-paper hover:border-paper/35 hover:bg-paper/15 active:scale-[0.98]",
-  ghostOnDark: "text-paper/75 hover:text-paper hover:bg-paper/10 active:scale-[0.98]",
+    "border border-panel-strong-fg/20 bg-panel-strong-fg/10 text-panel-strong-fg hover:border-panel-strong-fg/35 hover:bg-panel-strong-fg/15 active:scale-[0.98]",
+  ghostOnDark: "text-panel-strong-fg/75 hover:text-panel-strong-fg hover:bg-panel-strong-fg/10 active:scale-[0.98]",
 };
 
 const sizes = {

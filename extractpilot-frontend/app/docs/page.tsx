@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { useAuth } from "@/providers/AuthProvider";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const STEPS = [
   {
@@ -47,6 +48,7 @@ export default function DocsPage() {
             <Wordmark subtitle="Docs" />
           </Link>
           <div className="flex gap-2">
+            <ThemeToggle />
             <LinkButton href="/pricing" variant="ghost" size="sm">
               Pricing
             </LinkButton>

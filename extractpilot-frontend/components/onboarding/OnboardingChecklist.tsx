@@ -53,7 +53,7 @@ export function OnboardingChecklist({
                   step.done
                     ? "bg-moss/15 text-moss"
                     : next?.label === step.label
-                      ? "bg-night text-white"
+                      ? "bg-inverse text-inverse-fg"
                       : "bg-ink/[0.05] text-ink-muted"
                 }`}
               >

@@ -20,6 +20,14 @@ const config: Config = {
           faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
         night: "rgb(var(--night) / <alpha-value>)",
+        inverse: {
+          DEFAULT: "rgb(var(--inverse) / <alpha-value>)",
+          fg: "rgb(var(--inverse-fg) / <alpha-value>)",
+        },
+        "panel-strong": {
+          DEFAULT: "rgb(var(--panel-strong) / <alpha-value>)",
+          fg: "rgb(var(--panel-strong-fg) / <alpha-value>)",
+        },
         accent: {
           DEFAULT: "rgb(var(--accent) / <alpha-value>)",
           light: "rgb(var(--accent-light) / <alpha-value>)",

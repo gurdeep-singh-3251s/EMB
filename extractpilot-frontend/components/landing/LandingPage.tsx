@@ -10,6 +10,7 @@ import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
 import { HeroAmbient } from "@/components/motion/HeroAmbient";
 import { MotionCard } from "@/components/motion/MotionCard";
 import { useAuth } from "@/providers/AuthProvider";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const providers = ["Agent Gmail", "Office Outlook", "Transaction desk", "Property mgmt", "Any IMAP"];
 
@@ -117,6 +118,7 @@ export function LandingPage() {
             <Wordmark subtitle="For real estate teams" />
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <LinkButton href="/docs" variant="ghost" size="sm">
               Docs
             </LinkButton>
