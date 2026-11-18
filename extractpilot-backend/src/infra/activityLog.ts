@@ -34,6 +34,8 @@ const SKIP_EXACT = new Set([
   "/api/v1/audit-log",
   "/api/v1/auth/me",
   "/api/v1/auth/google",
+  "/api/v1/auth/login",
+  "/api/v1/auth/signup",
   "/api/v1/plans",
   "/api/v1/usage",
   "/api/v1/billing/webhook",

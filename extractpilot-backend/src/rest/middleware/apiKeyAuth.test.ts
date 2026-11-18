@@ -59,4 +59,11 @@ describe("validateRestApiKey", () => {
     const req = new Request("http://localhost/api/v1/auth/google");
     expect(await validateRestApiKey(req, envWithKey("secret-key-123"))).toBeNull();
   });
+
+  test("allows email signup and login without key", async () => {
+    const signup = new Request("http://localhost/api/v1/auth/signup", { method: "POST" });
+    const login = new Request("http://localhost/api/v1/auth/login", { method: "POST" });
+    expect(await validateRestApiKey(signup, envWithKey("secret-key-123"))).toBeNull();
+    expect(await validateRestApiKey(login, envWithKey("secret-key-123"))).toBeNull();
+  });
 });

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Database } from "@repo/db";
 import { users, workspaceBilling } from "@repo/db/schema";
 import type { AuthUser } from "./jwt";
+import { hashPassword, verifyPassword } from "./password";
 
 export type GoogleProfile = {
   sub: string;
@@ -67,6 +68,53 @@ async function ensureUserBillingRow(db: Database, userId: string): Promise<void>
     planId: "free",
     subscriptionStatus: "none",
   });
+}
+
+export async function registerPasswordUser(
+  db: Database,
+  input: { email: string; password: string; name: string | null },
+): Promise<{ ok: true; user: AuthUser } | { ok: false; message: string }> {
+  const [existing] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+  if (existing?.passwordHash) {
+    return { ok: false, message: "An account with this email already exists. Sign in instead." };
+  }
+  if (existing?.googleId && !existing.passwordHash) {
+    return { ok: false, message: "This email uses Google sign-in. Continue with Google." };
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  const now = new Date();
+  const [created] = await db
+    .insert(users)
+    .values({
+      email: input.email,
+      name: input.name,
+      passwordHash,
+      lastLoginAt: now,
+    })
+    .returning();
+  await ensureUserBillingRow(db, created.id);
+  return { ok: true, user: mapUser(created) };
+}
+
+export async function authenticatePasswordUser(
+  db: Database,
+  input: { email: string; password: string },
+): Promise<{ ok: true; user: AuthUser } | { ok: false; message: string }> {
+  const [existing] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+  if (!existing) {
+    return { ok: false, message: "Invalid email or password." };
+  }
+  if (!existing.passwordHash) {
+    return { ok: false, message: "This email uses Google sign-in. Continue with Google." };
+  }
+  const matches = await verifyPassword(input.password, existing.passwordHash);
+  if (!matches) {
+    return { ok: false, message: "Invalid email or password." };
+  }
+  const now = new Date();
+  await db.update(users).set({ lastLoginAt: now }).where(eq(users.id, existing.id));
+  return { ok: true, user: mapUser(existing) };
 }
 
 export async function findUserById(db: Database, id: string): Promise<AuthUser | null> {

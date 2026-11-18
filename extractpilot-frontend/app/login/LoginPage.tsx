@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import gsap from "gsap";
+import { apiFetch } from "@/lib/apiClient";
 import { getGoogleLoginUrl } from "@/lib/authSession";
+import { useAuth } from "@/providers/AuthProvider";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -84,8 +86,8 @@ export default function LoginPage() {
             One click. Your inbox workspace is ready.
           </h1>
           <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-ink-muted sm:text-[18px]">
-            Continue with Google — we create a private workspace for anyone who wants to automate high-volume email. No
-            card. No setup call required.
+            Sign up with email or continue with Google. We create a private workspace for anyone who wants to automate
+            high-volume email. No card. No setup call required.
           </p>
 
           <div className="mt-10 grid gap-3 sm:grid-cols-3">
@@ -121,7 +123,7 @@ export default function LoginPage() {
               <LogoMark />
               <div>
                 <p className="font-display text-lg font-bold tracking-tight text-night">Start free</p>
-                <p className="text-[13px] text-ink-muted">Google workspace sign-in</p>
+                <p className="text-[13px] text-ink-muted">Email or Google</p>
               </div>
             </div>
 
@@ -131,9 +133,17 @@ export default function LoginPage() {
               </p>
             ) : null}
 
+            <EmailAuthForm next={next} />
+
+            <div className="my-6 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
+              <span className="h-px flex-1 bg-ink/10" />
+              or
+              <span className="h-px flex-1 bg-ink/10" />
+            </div>
+
             <a
               href={loginUrl}
-              className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-inverse px-5 py-4 text-[16px] font-semibold text-inverse-fg shadow-premium transition hover:bg-inverse/90 active:scale-[0.99]"
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-ink/10 bg-paper px-5 py-3.5 text-[15px] font-semibold text-night transition hover:border-ink/20 hover:bg-paper-elevated active:scale-[0.99]"
             >
               <GoogleGlyph />
               Continue with Google
@@ -169,6 +179,122 @@ export default function LoginPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+function EmailAuthForm({ next }: { next: string }) {
+  const router = useRouter();
+  const { applyToken } = useAuth();
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setBusy(true);
+    const path = mode === "signup" ? "/api/v1/auth/signup" : "/api/v1/auth/login";
+    const res = await apiFetch<{ token: string }>(path, {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+        ...(mode === "signup" ? { name } : {}),
+      }),
+    });
+    if (!res.success || !res.data?.token) {
+      setError(res.success ? "Sign-in failed. Please try again." : res.message);
+      setBusy(false);
+      return;
+    }
+    const ok = await applyToken(res.data.token);
+    if (!ok) {
+      setError("Signed in, but the session could not be verified.");
+      setBusy(false);
+      return;
+    }
+    router.replace(next.startsWith("/") ? next : "/dashboard");
+  }
+
+  return (
+    <form onSubmit={(event) => void onSubmit(event)} className="mt-8 space-y-3">
+      <div className="grid grid-cols-2 rounded-2xl bg-paper p-1 text-[13px] font-semibold">
+        <button
+          type="button"
+          onClick={() => {
+            setMode("login");
+            setError(null);
+          }}
+          className={`rounded-xl px-3 py-2 ${mode === "login" ? "bg-inverse text-inverse-fg" : "text-ink-muted"}`}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("signup");
+            setError(null);
+          }}
+          className={`rounded-xl px-3 py-2 ${mode === "signup" ? "bg-inverse text-inverse-fg" : "text-ink-muted"}`}
+        >
+          Create account
+        </button>
+      </div>
+
+      {mode === "signup" ? (
+        <label className="block text-[13px] font-semibold text-ink-muted">
+          Name
+          <input
+            className="input-field mt-1"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            autoComplete="name"
+            placeholder="Your name"
+          />
+        </label>
+      ) : null}
+
+      <label className="block text-[13px] font-semibold text-ink-muted">
+        Email
+        <input
+          className="input-field mt-1"
+          type="email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          placeholder="you@company.com"
+        />
+      </label>
+      <label className="block text-[13px] font-semibold text-ink-muted">
+        Password
+        <input
+          className="input-field mt-1"
+          type="password"
+          required
+          minLength={8}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+        />
+      </label>
+
+      {error ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900">{error}</p>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={busy}
+        className="flex w-full items-center justify-center rounded-2xl bg-inverse px-5 py-3.5 text-[16px] font-semibold text-inverse-fg shadow-premium transition hover:bg-inverse/90 active:scale-[0.99] disabled:opacity-60"
+      >
+        {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+      </button>
+    </form>
   );
 }
 

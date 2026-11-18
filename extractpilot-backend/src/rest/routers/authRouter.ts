@@ -3,7 +3,8 @@ import { resolveApiPublicUrl } from "@repo/config";
 import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { authEnabled, extractBearerToken, signAccessToken, verifyAccessToken } from "../../auth/jwt";
 import { signOAuthState, verifyOAuthState } from "../../auth/oauthState";
-import { upsertGoogleUser } from "../../auth/userRepo";
+import { authenticatePasswordUser, registerPasswordUser, upsertGoogleUser } from "../../auth/userRepo";
+import { normalizeEmail, normalizeName, validatePassword } from "../../auth/password";
 import { resolveClientIp } from "../../auth/requestMeta";
 import { recordWorkspaceAudit } from "../../infra/workspaceIntegrations";
 import { BaseRestController } from "../helper/init";
@@ -130,6 +131,77 @@ class AuthHandler extends BaseRestController {
   logout(): Response {
     return this.success({ ok: true }, "Logged out", 200);
   }
+
+  async signup(req: Request): Promise<Response> {
+    if (!this.deps.env.auth.jwtSecret) {
+      return this.validationError("Sign-in is not configured on this server", null);
+    }
+    const body = await readJson(req);
+    const email = normalizeEmail(body?.email);
+    const passwordError = validatePassword(body?.password);
+    if (!email) return this.validationError("Enter a valid email address.", null);
+    if (passwordError) return this.validationError(passwordError, null);
+
+    const result = await registerPasswordUser(this.deps.getDb(), {
+      email,
+      password: String(body?.password),
+      name: normalizeName(body?.name),
+    });
+    if (!result.ok) return this.validationError(result.message, null);
+
+    await this.auditAuth(req, result.user, "auth.signed_up", "Created an email account");
+    const token = await signAccessToken(result.user, this.deps.env);
+    return this.success({ token, user: result.user }, "Account created", 201);
+  }
+
+  async login(req: Request): Promise<Response> {
+    if (!this.deps.env.auth.jwtSecret) {
+      return this.validationError("Sign-in is not configured on this server", null);
+    }
+    const body = await readJson(req);
+    const email = normalizeEmail(body?.email);
+    if (!email || typeof body?.password !== "string" || !body.password) {
+      return this.validationError("Enter your email and password.", null);
+    }
+
+    const result = await authenticatePasswordUser(this.deps.getDb(), {
+      email,
+      password: body.password,
+    });
+    if (!result.ok) return this.validationError(result.message, null);
+
+    await this.auditAuth(req, result.user, "auth.signed_in", "Signed in with email");
+    const token = await signAccessToken(result.user, this.deps.env);
+    return this.success({ token, user: result.user }, "Signed in", 200);
+  }
+
+  private async auditAuth(
+    req: Request,
+    user: { id: string; email: string; name: string | null },
+    action: string,
+    summary: string,
+  ): Promise<void> {
+    await recordWorkspaceAudit(this.deps.getDb(), user.id, action, {
+      summary,
+      method: "POST",
+      path: new URL(req.url).pathname,
+      status: action === "auth.signed_up" ? 201 : 200,
+      actorEmail: user.email,
+      actorName: user.name,
+      ip: resolveClientIp(req),
+      userAgent: req.headers.get("user-agent")?.slice(0, 180) ?? null,
+    }).catch(() => undefined);
+  }
+}
+
+async function readJson(req: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const body = (await req.json()) as unknown;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+    return body as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 }
 
 export async function handleAuthRouter(req: Request, deps: RestHandlerDeps): Promise<Response | null> {
@@ -147,6 +219,12 @@ export async function handleAuthRouter(req: Request, deps: RestHandlerDeps): Pro
   }
   if (path === "/api/v1/auth/logout" && req.method === "POST") {
     return handler.logout();
+  }
+  if (path === "/api/v1/auth/signup" && req.method === "POST") {
+    return handler.signup(req);
+  }
+  if (path === "/api/v1/auth/login" && req.method === "POST") {
+    return handler.login(req);
   }
 
   return null;

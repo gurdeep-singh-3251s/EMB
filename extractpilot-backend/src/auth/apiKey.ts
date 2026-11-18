@@ -103,6 +103,8 @@ export const PUBLIC_REST_PATHS = new Set([
   "/api/v1/billing/webhook",
   "/api/v1/auth/google",
   "/api/v1/auth/google/callback",
+  "/api/v1/auth/signup",
+  "/api/v1/auth/login",
 ]);
 
 export const AUTH_OPTIONAL_REST_PATHS = new Set(["/api/v1/auth/me", "/api/v1/auth/logout"]);
