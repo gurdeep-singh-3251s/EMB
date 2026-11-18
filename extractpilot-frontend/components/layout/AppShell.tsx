@@ -61,7 +61,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     const aside = asideRef.current;
     if (!aside) return;
     const links = aside.querySelectorAll<HTMLElement>(".nav-item");
-    gsap.from(links, { opacity: 0, x: -10, duration: 0.4, stagger: 0.03, ease: "power2.out", delay: 0.05 });
+    gsap.fromTo(
+      links,
+      { opacity: 0, x: -10 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.4,
+        stagger: 0.03,
+        ease: "power2.out",
+        delay: 0.05,
+        clearProps: "opacity,transform",
+      },
+    );
   }, []);
 
   useLayoutEffect(() => {
@@ -109,10 +121,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Wordmark subtitle="Workspace" />
           </GuardedLink>
 
-          <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-faint">Main</p>
+          <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-muted">Main</p>
           <nav className="space-y-0.5">{renderNav(primaryNav)}</nav>
 
-          <p className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-faint">More</p>
+          <p className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-muted">More</p>
           <nav className="space-y-0.5">{renderNav(secondaryNav)}</nav>
 
           <div className="mt-auto overflow-hidden rounded-3xl border border-ink/[0.07] bg-gradient-to-br from-paper to-accent-soft/50 p-4">

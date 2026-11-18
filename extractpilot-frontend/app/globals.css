@@ -129,7 +129,7 @@
   }
 
   .nav-link {
-    @apply relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium text-ink-muted transition-all duration-200 hover:bg-ink/[0.04] hover:text-night;
+    @apply relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium text-ink transition-all duration-200 hover:bg-ink/[0.04] hover:text-night;
   }
 
   .nav-link-active {
