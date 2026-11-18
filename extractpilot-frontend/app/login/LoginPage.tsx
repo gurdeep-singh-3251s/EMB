@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import gsap from "gsap";
 import { apiFetch } from "@/lib/apiClient";
 import { getGoogleLoginUrl } from "@/lib/authSession";
 import { useAuth } from "@/providers/AuthProvider";
@@ -17,10 +16,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   session: "Signed in with Google but the session could not be verified. Check API_URL on Vercel.",
 };
 
-const AFTER_SIGNIN = [
-  { n: "01", title: "Write requirements", body: "Describe what to extract and which fields you need." },
-  { n: "02", title: "Connect mailboxes", body: "Add Gmail or IMAP — extraction uses the active one." },
-  { n: "03", title: "Extract Now", body: "Run extraction and review results with confidence scores." },
+const STEPS = [
+  { n: "01", title: "Write requirements", body: "Say what to pull from each email." },
+  { n: "02", title: "Connect a mailbox", body: "Gmail or IMAP. One active inbox." },
+  { n: "03", title: "Extract", body: "Review structured results with scores." },
 ];
 
 export default function LoginPage() {
@@ -28,164 +27,113 @@ export default function LoginPage() {
   const errorKey = params.get("error");
   const next = params.get("next") ?? "/dashboard";
   const loginUrl = `${getGoogleLoginUrl()}?state=${encodeURIComponent(next)}`;
-  const root = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const ctx = gsap.context(() => {
-      gsap.from(".login-brand > *", { opacity: 0, y: 18, duration: 0.7, stagger: 0.08, ease: "power3.out" });
-      gsap.from(".login-panel", { opacity: 0, x: 28, duration: 0.85, ease: "power3.out", delay: 0.12 });
-      gsap.from(".login-step", { opacity: 0, y: 14, duration: 0.55, stagger: 0.08, ease: "power2.out", delay: 0.35 });
-      gsap.to(".login-orb", {
-        y: -18,
-        x: 12,
-        duration: 6,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        stagger: 0.6,
-      });
-    }, el);
-    return () => ctx.revert();
-  }, []);
+  const [mode, setMode] = useState<"login" | "signup">("login");
 
   return (
-    <div ref={root} className="relative min-h-[100dvh] overflow-hidden bg-transparent">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="login-orb absolute -left-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-accent/25 blur-3xl" />
-        <div className="login-orb absolute -bottom-32 right-0 h-[26rem] w-[26rem] rounded-full bg-sky-400/15 blur-3xl" />
-        <div className="login-orb absolute left-1/3 top-1/3 h-64 w-64 rounded-full bg-moss/10 blur-3xl" />
+    <div className="min-h-dvh bg-paper lg:grid lg:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)]">
+      <aside className="relative hidden overflow-hidden bg-inverse text-inverse-fg lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-10">
         <div
-          className="absolute inset-0 opacity-[0.4]"
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
           style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(15,23,42,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.035) 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
+            background:
+              "radial-gradient(520px 280px at 12% 0%, rgb(var(--accent) / 0.35), transparent 60%), radial-gradient(420px 240px at 100% 100%, rgb(34 197 94 / 0.16), transparent 55%)",
           }}
         />
-      </div>
-
-      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link href="/" className="flex items-center gap-3">
-          <LogoMark size="sm" />
-          <Wordmark subtitle="Sign in" />
+        <Link href="/" className="relative flex items-center gap-3">
+          <LogoMark size="sm" onDark />
+          <Wordmark onDark />
         </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link href="/docs" className="hidden text-[14px] font-semibold text-ink-muted transition hover:text-night sm:inline">
-            See Docs
-          </Link>
-        </div>
-      </header>
-
-      <main className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-10">
-        <section className="login-brand">
-          <p className="section-label-accent">Welcome to ExtractPilot</p>
-          <h1 className="mt-4 max-w-xl font-display text-[2.4rem] font-bold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
-            One click. Your inbox workspace is ready.
+        <div className="relative max-w-md">
+          <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-inverse-fg/55">Your workspace</p>
+          <h1 className="mt-3 font-display text-[2.4rem] font-semibold leading-[1.12] tracking-tight">
+            Sign in and pick up where the inbox left off.
           </h1>
-          <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-ink-muted sm:text-[18px]">
-            Sign up with email or continue with Google. We create a private workspace for anyone who wants to automate
-            high-volume email. No card. No setup call required.
-          </p>
-
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            {AFTER_SIGNIN.map((step) => (
-              <article key={step.n} className="login-step saas-card p-4">
-                <p className="font-display text-[11px] font-bold tracking-[0.16em] text-accent">{step.n}</p>
-                <p className="mt-2 text-[15px] font-bold text-night">{step.title}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
-              </article>
+          <ul className="mt-8 space-y-4">
+            {STEPS.map((step) => (
+              <li key={step.n} className="flex gap-3">
+                <span className="mt-0.5 font-display text-[12px] font-bold tracking-[0.14em] text-accent">{step.n}</span>
+                <span>
+                  <span className="block text-[15px] font-semibold">{step.title}</span>
+                  <span className="mt-0.5 block text-[13px] leading-relaxed text-inverse-fg/65">{step.body}</span>
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
+        </div>
+        <p className="relative text-[13px] text-inverse-fg/55">Basic is free. No card required.</p>
+      </aside>
 
-          <p className="mt-8 text-[14px] text-ink-muted">
-            Prefer the API first?{" "}
-            <Link href="/docs" className="font-semibold text-accent hover:text-accent-light">
-              Read the docs
+      <div className="flex min-h-dvh flex-col">
+        <header className="flex items-center justify-between px-5 py-3 sm:px-8">
+          <Link href="/" className="flex items-center gap-3 lg:invisible">
+            <LogoMark size="sm" />
+            <Wordmark />
+          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/docs" className="text-[14px] font-semibold text-ink-muted transition hover:text-night">
+              Docs
             </Link>
-          </p>
-        </section>
+          </div>
+        </header>
 
-        <section className="login-panel">
-          <div className="relative overflow-hidden rounded-[2rem] border border-ink/[0.08] bg-paper-elevated/90 p-8 shadow-ledger-lg backdrop-blur-xl sm:p-10">
-            <div
-              className="absolute inset-x-0 top-0 h-1.5"
-              style={{
-                background: "linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-light)), rgb(var(--moss)))",
-                backgroundSize: "200% 100%",
-                animation: "shimmer-line 4s linear infinite alternate",
-              }}
-              aria-hidden
-            />
-            <div className="flex items-center gap-3">
-              <LogoMark />
-              <div>
-                <p className="font-display text-lg font-bold tracking-tight text-night">Start free</p>
-                <p className="text-[13px] text-ink-muted">Email or Google</p>
-              </div>
-            </div>
+        <main className="flex flex-1 items-center justify-center px-5 pb-6 sm:px-8">
+          <div className="w-full max-w-[420px]">
+            <h2 className="font-display text-[1.7rem] font-semibold tracking-tight text-night">
+              {mode === "signup" ? "Create your account" : "Sign in"}
+            </h2>
+            <p className="mt-1 text-[14px] leading-snug text-ink-muted">
+              {mode === "signup"
+                ? "Email and password, or Google. Basic is free."
+                : "Email or Google. Basic is free, no card required."}
+            </p>
 
             {errorKey ? (
-              <p className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[15px] text-rose-900">
+              <p className="mt-5 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3.5 py-2.5 text-[14px] text-rose-700">
                 {ERROR_MESSAGES[errorKey] ?? "Sign-in failed. Please try again."}
               </p>
             ) : null}
 
-            <EmailAuthForm next={next} />
-
-            <div className="my-6 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
-              <span className="h-px flex-1 bg-ink/10" />
-              or
-              <span className="h-px flex-1 bg-ink/10" />
-            </div>
-
             <a
               href={loginUrl}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-ink/10 bg-paper px-5 py-3.5 text-[15px] font-semibold text-night transition hover:border-ink/20 hover:bg-paper-elevated active:scale-[0.99]"
+              className="mt-5 flex w-full items-center justify-center gap-3 rounded-xl border border-ink/10 bg-paper-elevated px-4 py-2.5 text-[15px] font-semibold text-night shadow-sm transition hover:border-ink/20"
             >
               <GoogleGlyph />
               Continue with Google
             </a>
 
-            <div className="mt-6 space-y-3 rounded-2xl border border-ink/[0.06] bg-paper/80 px-4 py-4 text-[14px] text-ink-muted">
-              <p className="flex gap-2">
-                <span className="text-accent" aria-hidden>
-                  ✓
-                </span>
-                Free tier to automate your first mailbox
-              </p>
-              <p className="flex gap-2">
-                <span className="text-accent" aria-hidden>
-                  ✓
-                </span>
-                Multi-mailbox + requirements workflow included
-              </p>
-              <p className="flex gap-2">
-                <span className="text-accent" aria-hidden>
-                  ✓
-                </span>
-                Your data stays in your private workspace
-              </p>
+            <div className="my-4 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
+              <span className="h-px flex-1 bg-ink/10" />
+              or email
+              <span className="h-px flex-1 bg-ink/10" />
             </div>
 
-            <p className="mt-8 text-center text-[14px]">
-              <Link href="/" className="font-semibold text-ink-muted transition hover:text-accent">
-                ← Back to home
+            <EmailAuthForm next={next} mode={mode} onMode={setMode} />
+
+            <p className="mt-4 text-center text-[13px] text-ink-muted">
+              <Link href="/" className="font-semibold transition hover:text-night">
+                Back to home
               </Link>
             </p>
           </div>
-        </section>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
 
-function EmailAuthForm({ next }: { next: string }) {
+function EmailAuthForm({
+  next,
+  mode,
+  onMode,
+}: {
+  next: string;
+  mode: "login" | "signup";
+  onMode: (mode: "login" | "signup") => void;
+}) {
   const router = useRouter();
   const { applyToken } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -220,47 +168,45 @@ function EmailAuthForm({ next }: { next: string }) {
   }
 
   return (
-    <form onSubmit={(event) => void onSubmit(event)} className="mt-8 space-y-3">
-      <div className="grid grid-cols-2 rounded-2xl bg-paper p-1 text-[13px] font-semibold">
+    <form onSubmit={(event) => void onSubmit(event)} className="space-y-3">
+      <div className="grid grid-cols-2 rounded-xl border border-ink/10 bg-paper-elevated p-1 text-[13px] font-semibold">
         <button
           type="button"
           onClick={() => {
-            setMode("login");
+            onMode("login");
             setError(null);
           }}
-          className={`rounded-xl px-3 py-2 ${mode === "login" ? "bg-inverse text-inverse-fg" : "text-ink-muted"}`}
+          className={`rounded-lg px-3 py-2 transition ${mode === "login" ? "bg-inverse text-inverse-fg" : "text-ink-muted hover:text-night"}`}
         >
           Sign in
         </button>
         <button
           type="button"
           onClick={() => {
-            setMode("signup");
+            onMode("signup");
             setError(null);
           }}
-          className={`rounded-xl px-3 py-2 ${mode === "signup" ? "bg-inverse text-inverse-fg" : "text-ink-muted"}`}
+          className={`rounded-lg px-3 py-2 transition ${mode === "signup" ? "bg-inverse text-inverse-fg" : "text-ink-muted hover:text-night"}`}
         >
           Create account
         </button>
       </div>
 
       {mode === "signup" ? (
-        <label className="block text-[13px] font-semibold text-ink-muted">
-          Name
+        <Field label="Name">
           <input
-            className="input-field mt-1"
+            className="input-field !rounded-xl !py-2.5"
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoComplete="name"
             placeholder="Your name"
           />
-        </label>
+        </Field>
       ) : null}
 
-      <label className="block text-[13px] font-semibold text-ink-muted">
-        Email
+      <Field label="Email">
         <input
-          className="input-field mt-1"
+          className="input-field !rounded-xl !py-2.5"
           type="email"
           required
           value={email}
@@ -268,11 +214,10 @@ function EmailAuthForm({ next }: { next: string }) {
           autoComplete="email"
           placeholder="you@company.com"
         />
-      </label>
-      <label className="block text-[13px] font-semibold text-ink-muted">
-        Password
+      </Field>
+      <Field label="Password">
         <input
-          className="input-field mt-1"
+          className="input-field !rounded-xl !py-2.5"
           type="password"
           required
           minLength={8}
@@ -281,20 +226,29 @@ function EmailAuthForm({ next }: { next: string }) {
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
           placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
         />
-      </label>
+      </Field>
 
       {error ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900">{error}</p>
+        <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-3.5 py-2.5 text-[14px] text-rose-700">{error}</p>
       ) : null}
 
       <button
         type="submit"
         disabled={busy}
-        className="flex w-full items-center justify-center rounded-2xl bg-inverse px-5 py-3.5 text-[16px] font-semibold text-inverse-fg shadow-premium transition hover:bg-inverse/90 active:scale-[0.99] disabled:opacity-60"
+        className="flex w-full items-center justify-center rounded-xl bg-inverse px-4 py-2.5 text-[15px] font-semibold text-inverse-fg transition hover:bg-inverse/90 disabled:opacity-60"
       >
         {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
       </button>
     </form>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[13px] font-semibold text-ink">{label}</span>
+      {children}
+    </label>
   );
 }
 
