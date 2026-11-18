@@ -95,10 +95,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="min-h-screen bg-transparent lg:grid lg:grid-cols-[268px_1fr]">
       <aside
         ref={asideRef}
-        className={`border-b border-ink/[0.06] bg-paper-elevated lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r ${
+        className={`border-b border-ink/[0.06] bg-paper-elevated/90 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r ${
           mobileOpen ? "block" : "hidden lg:block"
         }`}
       >
@@ -114,10 +114,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <p className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-faint">More</p>
           <nav className="space-y-0.5">{renderNav(secondaryNav)}</nav>
 
-          <div className="mt-auto rounded-2xl border border-ink/[0.07] bg-paper p-4">
+          <div className="mt-auto overflow-hidden rounded-3xl border border-ink/[0.07] bg-gradient-to-br from-paper to-accent-soft/50 p-4">
             <p className="text-[13px] font-semibold text-night">Need help?</p>
             <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
-              Start with <span className="font-medium text-night">Get started</span> — three steps and you&apos;re extracting.
+              Start with <span className="font-medium text-night">Get started</span> — three steps and you&apos;re
+              extracting.
             </p>
             <GuardedLink href="/dashboard/workflow?step=1" className="link-arrow mt-3 text-[13px]">
               Open setup <span aria-hidden>↗</span>
@@ -127,12 +128,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-20 border-b border-ink/[0.06] bg-paper/90 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-ink/[0.06] bg-paper/80 backdrop-blur-2xl">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 lg:px-10 lg:py-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-paper-elevated text-night lg:hidden"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-paper-elevated text-night shadow-sm lg:hidden"
                 aria-label={mobileOpen ? "Close menu" : "Open menu"}
                 onClick={() => setMobileOpen((v) => !v)}
               >
@@ -181,7 +182,7 @@ function HeaderTitle({ pathname }: { pathname: string }) {
   return (
     <div>
       <p className="section-label">ExtractPilot</p>
-      <p className="text-base font-bold tracking-tight text-night sm:text-lg">{label}</p>
+      <p className="font-display text-base font-bold tracking-tight text-night sm:text-lg">{label}</p>
     </div>
   );
 }

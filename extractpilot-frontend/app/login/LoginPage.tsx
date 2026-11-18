@@ -49,16 +49,16 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <div ref={root} className="relative min-h-[100dvh] overflow-hidden bg-paper">
+    <div ref={root} className="relative min-h-[100dvh] overflow-hidden bg-transparent">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="login-orb absolute -left-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-accent/20 blur-3xl" />
-        <div className="login-orb absolute -bottom-32 right-0 h-[26rem] w-[26rem] rounded-full bg-moss/15 blur-3xl" />
-        <div className="login-orb absolute left-1/3 top-1/3 h-64 w-64 rounded-full bg-accent-soft blur-3xl" />
+        <div className="login-orb absolute -left-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-accent/25 blur-3xl" />
+        <div className="login-orb absolute -bottom-32 right-0 h-[26rem] w-[26rem] rounded-full bg-sky-400/15 blur-3xl" />
+        <div className="login-orb absolute left-1/3 top-1/3 h-64 w-64 rounded-full bg-moss/10 blur-3xl" />
         <div
-          className="absolute inset-0 opacity-[0.35]"
+          className="absolute inset-0 opacity-[0.4]"
           style={{
             backgroundImage:
-              "linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.04) 1px, transparent 1px)",
+              "linear-gradient(to right, rgba(15,23,42,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.035) 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }}
         />
@@ -80,18 +80,18 @@ export default function LoginPage() {
       <main className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-10">
         <section className="login-brand">
           <p className="section-label-accent">Welcome to ExtractPilot</p>
-          <h1 className="mt-4 max-w-xl text-[2.4rem] font-extrabold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
-            One click. Your brokerage workspace is ready.
+          <h1 className="mt-4 max-w-xl font-display text-[2.4rem] font-extrabold leading-[1.05] tracking-tight text-night sm:text-5xl lg:text-[3.25rem]">
+            One click. Your inbox workspace is ready.
           </h1>
           <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-ink-muted sm:text-[18px]">
-            Continue with Google — we create a private workspace for managers and agents. No card. No setup call
-            required.
+            Continue with Google — we create a private workspace for anyone who wants to automate high-volume email. No
+            card. No setup call required.
           </p>
 
           <div className="mt-10 grid gap-3 sm:grid-cols-3">
             {AFTER_SIGNIN.map((step) => (
               <article key={step.n} className="login-step saas-card p-4">
-                <p className="text-[11px] font-bold tracking-[0.16em] text-accent">{step.n}</p>
+                <p className="font-display text-[11px] font-bold tracking-[0.16em] text-accent">{step.n}</p>
                 <p className="mt-2 text-[15px] font-bold text-night">{step.title}</p>
                 <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
               </article>
@@ -108,11 +108,19 @@ export default function LoginPage() {
 
         <section className="login-panel">
           <div className="relative overflow-hidden rounded-[2rem] border border-ink/[0.08] bg-paper-elevated/90 p-8 shadow-ledger-lg backdrop-blur-xl sm:p-10">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-accent-light to-moss" aria-hidden />
+            <div
+              className="absolute inset-x-0 top-0 h-1.5"
+              style={{
+                background: "linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-light)), rgb(var(--moss)))",
+                backgroundSize: "200% 100%",
+                animation: "shimmer-line 4s linear infinite alternate",
+              }}
+              aria-hidden
+            />
             <div className="flex items-center gap-3">
               <LogoMark />
               <div>
-                <p className="text-lg font-bold tracking-tight text-night">Start free</p>
+                <p className="font-display text-lg font-bold tracking-tight text-night">Start free</p>
                 <p className="text-[13px] text-ink-muted">Google workspace sign-in</p>
               </div>
             </div>
@@ -125,18 +133,18 @@ export default function LoginPage() {
 
             <a
               href={loginUrl}
-              className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-inverse px-5 py-4 text-[16px] font-semibold text-inverse-fg transition hover:bg-inverse/90 active:scale-[0.99]"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-inverse px-5 py-4 text-[16px] font-semibold text-inverse-fg shadow-premium transition hover:bg-inverse/90 active:scale-[0.99]"
             >
               <GoogleGlyph />
               Continue with Google
             </a>
 
-            <div className="mt-6 space-y-3 rounded-2xl border border-ink/[0.06] bg-paper px-4 py-4 text-[14px] text-ink-muted">
+            <div className="mt-6 space-y-3 rounded-2xl border border-ink/[0.06] bg-paper/80 px-4 py-4 text-[14px] text-ink-muted">
               <p className="flex gap-2">
                 <span className="text-accent" aria-hidden>
                   ✓
                 </span>
-                Free tier for live brokerage demos
+                Free tier to automate your first mailbox
               </p>
               <p className="flex gap-2">
                 <span className="text-accent" aria-hidden>

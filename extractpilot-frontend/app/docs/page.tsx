@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { useAuth } from "@/providers/AuthProvider";
@@ -98,10 +99,29 @@ export default function DocsPage() {
   const promptsHref = signedIn ? "/dashboard/prompts" : "/login?next=/dashboard/prompts";
   const toolsHref = signedIn ? "/dashboard/integrations" : "/login?next=/dashboard/integrations";
   const apiHref = signedIn ? "/dashboard/developers" : "/login?next=/dashboard/developers";
+  const [activeId, setActiveId] = useState("overview");
+
+  useEffect(() => {
+    const nodes = TOC.map((item) => document.getElementById(item.id)).filter(Boolean) as HTMLElement[];
+    if (!nodes.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) setActiveId(visible[0].target.id);
+      },
+      { rootMargin: "-20% 0px -55% 0px", threshold: [0.1, 0.35, 0.6] },
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="sticky top-0 z-30 border-b border-ink/[0.08] bg-paper/90 backdrop-blur-xl">
+    <div className="marketing-shell">
+      <header className="marketing-header">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <LogoMark size="sm" />
@@ -109,6 +129,9 @@ export default function DocsPage() {
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <LinkButton href="/pricing" variant="ghost" size="sm">
+              Pricing
+            </LinkButton>
             <LinkButton href={startHref} variant="accent" size="sm">
               {signedIn ? "Open workspace" : "Start free"}
             </LinkButton>
@@ -116,15 +139,21 @@ export default function DocsPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[220px_1fr] lg:py-16">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[230px_1fr] lg:py-16">
         <aside className="hidden lg:block">
-          <nav className="sticky top-28 space-y-1">
-            <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-faint">On this page</p>
+          <nav className="sticky top-28 space-y-1 rounded-3xl border border-ink/[0.06] bg-paper-elevated/70 p-3 shadow-premium backdrop-blur-xl">
+            <p className="mb-2 px-3 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-faint">
+              On this page
+            </p>
             {TOC.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="block rounded-xl px-3 py-2 text-[14px] font-medium text-ink-muted transition hover:bg-ink/[0.04] hover:text-night"
+                className={`docs-toc-link ${
+                  activeId === item.id
+                    ? "bg-inverse font-semibold text-inverse-fg shadow-sm hover:bg-inverse hover:text-inverse-fg"
+                    : ""
+                }`}
               >
                 {item.label}
               </a>
@@ -134,32 +163,38 @@ export default function DocsPage() {
 
         <main className="min-w-0 space-y-16">
           <section id="overview" className="scroll-mt-28">
-            <p className="section-label-accent">ExtractPilot docs</p>
-            <h1 className="page-title">Automate your email workflow — end to end.</h1>
-            <p className="page-lede">
-              Built for anyone who gets dozens or hundreds of emails a day. Connect inboxes, describe what you need in
-              plain language, extract structured data (including attachments), and push results into Slack, Zapier, or
-              your CRM.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <LinkButton href={startHref} variant="accent">
-                {signedIn ? "Open workspace" : "Start free"}
-              </LinkButton>
-              <LinkButton href={toolsHref} variant="secondary">
-                Connect tools
-              </LinkButton>
+            <div className="relative overflow-hidden rounded-[2rem] border border-ink/[0.07] bg-paper-elevated/80 p-8 shadow-premium sm:p-10">
+              <div
+                className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl"
+                aria-hidden
+              />
+              <p className="section-label-accent">ExtractPilot docs</p>
+              <h1 className="page-title !mt-3 font-display">Automate your email workflow — end to end.</h1>
+              <p className="page-lede">
+                Built for anyone who gets dozens or hundreds of emails a day. Connect inboxes, describe what you need in
+                plain language, extract structured data (including attachments), and push results into Slack, Zapier, or
+                your CRM.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <LinkButton href={startHref} variant="accent">
+                  {signedIn ? "Open workspace" : "Start free"}
+                </LinkButton>
+                <LinkButton href={toolsHref} variant="secondary">
+                  Connect tools
+                </LinkButton>
+              </div>
             </div>
           </section>
 
           <section id="who" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Who it&apos;s for</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Who it&apos;s for</h2>
             <p className="mt-2 text-[16px] text-ink-muted">
               Same product for every team — only your requirements and schema change.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {AUDIENCES.map((item) => (
-                <article key={item.title} className="saas-card p-5">
-                  <h3 className="font-bold text-night">{item.title}</h3>
+                <article key={item.title} className="saas-card p-5 transition hover:-translate-y-0.5 hover:shadow-ledger-lg">
+                  <h3 className="font-display font-bold text-night">{item.title}</h3>
                   <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">{item.body}</p>
                 </article>
               ))}
@@ -167,14 +202,14 @@ export default function DocsPage() {
           </section>
 
           <section id="quickstart" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Quick start (about 10 minutes)</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Quick start (about 10 minutes)</h2>
             <p className="mt-2 text-[16px] text-ink-muted">
               From empty workspace to structured results — no engineering required.
             </p>
             <ol className="mt-6 space-y-4">
               {QUICK_STEPS.map((step, i) => (
                 <li key={step.title} className="saas-card flex gap-4 p-5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent-soft font-display text-sm font-bold text-accent">
                     {i + 1}
                   </span>
                   <div>
@@ -187,7 +222,7 @@ export default function DocsPage() {
           </section>
 
           <section id="mailboxes" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Mailboxes (multi-inbox)</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Mailboxes (multi-inbox)</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 Go to <strong className="text-night">Mailboxes</strong> in the sidebar. Add every inbox you want to
@@ -209,7 +244,7 @@ export default function DocsPage() {
           </section>
 
           <section id="requirements" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Requirements & AI models</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Requirements & AI models</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 Tell ExtractPilot <em>what</em> to pull from each email (and attachments) in plain language, then define
@@ -219,7 +254,7 @@ export default function DocsPage() {
                 {TEMPLATE_EXAMPLES.map((name) => (
                   <li
                     key={name}
-                    className="rounded-xl border border-ink/[0.07] bg-paper-elevated px-4 py-3 text-[14px] font-medium text-night"
+                    className="rounded-2xl border border-ink/[0.07] bg-paper-elevated/90 px-4 py-3 text-[14px] font-medium text-night shadow-sm"
                   >
                     {name}
                   </li>
@@ -237,7 +272,7 @@ export default function DocsPage() {
           </section>
 
           <section id="extract" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Run extraction</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Run extraction</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 Open <strong className="text-night">Get started</strong> (or Extract Now in the top bar). Confirm mailbox
@@ -251,7 +286,7 @@ export default function DocsPage() {
           </section>
 
           <section id="results" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Results & confidence</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Results & confidence</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 <strong className="text-night">Results</strong> shows structured JSON per email. Use confidence scores to
@@ -265,7 +300,7 @@ export default function DocsPage() {
           </section>
 
           <section id="integrations" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Connect your tools</h2>
+            <h2 className="font-display text-2xl font-bold text-night">Connect your tools</h2>
             <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-ink-muted">
               <p>
                 Open <strong className="text-night">Integrations</strong> to deliver data after each extraction:
@@ -294,41 +329,41 @@ export default function DocsPage() {
           </section>
 
           <section id="plans" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">Plans & limits</h2>
-            <div className="mt-4 overflow-x-auto">
+            <h2 className="font-display text-2xl font-bold text-night">Plans & limits</h2>
+            <div className="mt-4 overflow-x-auto rounded-3xl border border-ink/[0.07] bg-paper-elevated/90 shadow-premium">
               <table className="w-full min-w-[520px] text-left text-[14px]">
                 <thead>
-                  <tr className="border-b border-ink/10 text-ink-muted">
-                    <th className="py-3 font-semibold">Plan</th>
-                    <th className="py-3 font-semibold">Email volume</th>
-                    <th className="py-3 font-semibold">AI models</th>
-                    <th className="py-3 font-semibold">Best for</th>
+                  <tr className="border-b border-ink/10 bg-ink/[0.02] text-ink-muted">
+                    <th className="px-5 py-3.5 font-semibold">Plan</th>
+                    <th className="px-5 py-3.5 font-semibold">Email volume</th>
+                    <th className="px-5 py-3.5 font-semibold">AI models</th>
+                    <th className="px-5 py-3.5 font-semibold">Best for</th>
                   </tr>
                 </thead>
                 <tbody className="text-night">
                   <tr className="border-b border-ink/5">
-                    <td className="py-3 font-semibold">Starter</td>
-                    <td className="py-3 text-ink-muted">Demo / light use</td>
-                    <td className="py-3 text-ink-muted">10+ fast models</td>
-                    <td className="py-3 text-ink-muted">Trying the flow</td>
+                    <td className="px-5 py-3.5 font-semibold">Starter</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Demo / light use</td>
+                    <td className="px-5 py-3.5 text-ink-muted">10+ fast models</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Trying the flow</td>
                   </tr>
                   <tr className="border-b border-ink/5">
-                    <td className="py-3 font-semibold">Team</td>
-                    <td className="py-3 text-ink-muted">1,000 / week</td>
-                    <td className="py-3 text-ink-muted">20+ models</td>
-                    <td className="py-3 text-ink-muted">Busy shared inboxes</td>
+                    <td className="px-5 py-3.5 font-semibold">Team</td>
+                    <td className="px-5 py-3.5 text-ink-muted">1,000 / week</td>
+                    <td className="px-5 py-3.5 text-ink-muted">20+ models</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Busy shared inboxes</td>
                   </tr>
                   <tr className="border-b border-ink/5">
-                    <td className="py-3 font-semibold">Business</td>
-                    <td className="py-3 text-ink-muted">5,000 / week</td>
-                    <td className="py-3 text-ink-muted">35+ models</td>
-                    <td className="py-3 text-ink-muted">Multi-team ops</td>
+                    <td className="px-5 py-3.5 font-semibold">Business</td>
+                    <td className="px-5 py-3.5 text-ink-muted">5,000 / week</td>
+                    <td className="px-5 py-3.5 text-ink-muted">35+ models</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Multi-team ops</td>
                   </tr>
                   <tr>
-                    <td className="py-3 font-semibold">Enterprise</td>
-                    <td className="py-3 text-ink-muted">20,000 / week</td>
-                    <td className="py-3 text-ink-muted">Full 50+ catalog</td>
-                    <td className="py-3 text-ink-muted">Company-wide mail</td>
+                    <td className="px-5 py-3.5 font-semibold">Enterprise</td>
+                    <td className="px-5 py-3.5 text-ink-muted">20,000 / week</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Full 50+ catalog</td>
+                    <td className="px-5 py-3.5 text-ink-muted">Company-wide mail</td>
                   </tr>
                 </tbody>
               </table>
@@ -341,7 +376,7 @@ export default function DocsPage() {
           </section>
 
           <section id="api" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">API reference (developers)</h2>
+            <h2 className="font-display text-2xl font-bold text-night">API reference (developers)</h2>
             <p className="mt-2 text-[16px] text-ink-muted">
               Authenticate with your Google session in the console, or an API key from Settings for scripts. Responses
               use a <code className="rounded bg-ink/5 px-1 text-[13px]">success / message / data</code> envelope.
@@ -369,7 +404,7 @@ export default function DocsPage() {
           </section>
 
           <section id="faq" className="scroll-mt-28">
-            <h2 className="text-2xl font-bold text-night">FAQ</h2>
+            <h2 className="font-display text-2xl font-bold text-night">FAQ</h2>
             <div className="mt-6 space-y-4">
               {FAQ.map((item) => (
                 <article key={item.q} className="saas-card p-5">
@@ -381,21 +416,25 @@ export default function DocsPage() {
           </section>
 
           <section className="saas-card-dark p-8 sm:p-10">
-            <p className="section-label !text-white/50">Ready</p>
-            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Start free and automate your inbox.</h2>
-            <p className="mt-3 max-w-xl text-[16px] text-white/70">
-              Sign in, connect a mailbox, write requirements (or pick a template), extract, then wire Results into the
-              tools you already use.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {!loading ? (
-                <LinkButton href={startHref} variant="accent" size="lg">
-                  {signedIn ? "Open workspace" : "Start free"}
+            <div className="relative z-10">
+              <p className="section-label !text-white/50">Ready</p>
+              <h2 className="mt-3 font-display text-2xl font-bold text-white sm:text-3xl">
+                Start free and automate your inbox.
+              </h2>
+              <p className="mt-3 max-w-xl text-[16px] text-white/70">
+                Sign in, connect a mailbox, write requirements (or pick a template), extract, then wire Results into the
+                tools you already use.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {!loading ? (
+                  <LinkButton href={startHref} variant="accent" size="lg">
+                    {signedIn ? "Open workspace" : "Start free"}
+                  </LinkButton>
+                ) : null}
+                <LinkButton href="#quickstart" variant="inverse" size="lg">
+                  Back to quick start
                 </LinkButton>
-              ) : null}
-              <LinkButton href="#quickstart" variant="inverse" size="lg">
-                Back to quick start
-              </LinkButton>
+              </div>
             </div>
           </section>
         </main>

@@ -97,8 +97,8 @@ export default function PricingPage() {
   const docsHref = "/docs";
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="sticky top-0 z-20 border-b border-ink/[0.07] bg-paper/90 backdrop-blur-xl">
+    <div className="marketing-shell">
+      <header className="marketing-header">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <LogoMark size="sm" />
@@ -128,12 +128,12 @@ export default function PricingPage() {
       <main className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
         <div ref={headRef} className="mx-auto max-w-3xl text-center">
           <p className="section-label-accent">Simple pricing</p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-night sm:text-5xl">
+          <h1 className="mt-3 font-display text-4xl font-extrabold tracking-tight text-night sm:text-5xl">
             Start free. Scale when volume grows.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-muted">
             Write requirements, connect mailboxes, Extract Now. Same product on every plan — limits and AI models scale
-            up.
+            up for sales, support, ecommerce, and ops.
           </p>
           {signedIn ? (
             <p className="mt-5 inline-flex rounded-2xl border border-moss/25 bg-moss/10 px-4 py-2.5 text-[14px] text-night">
@@ -144,9 +144,9 @@ export default function PricingPage() {
 
         <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {HIGHLIGHTS.map((item) => (
-            <div key={item.label} className="saas-card px-4 py-4 text-center">
-              <p className="text-[15px] font-bold text-night">{item.label}</p>
-              <p className="mt-1 text-[13px] text-ink-muted">{item.detail}</p>
+            <div key={item.label} className="stat-tile text-center">
+              <p className="relative text-[15px] font-bold text-night">{item.label}</p>
+              <p className="relative mt-1 text-[13px] text-ink-muted">{item.detail}</p>
             </div>
           ))}
         </div>

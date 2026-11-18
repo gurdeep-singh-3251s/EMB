@@ -43,7 +43,7 @@ export function Wordmark({ subtitle, onDark = false }: { subtitle?: string; onDa
   return (
     <div>
       <p
-        className={`text-sm font-extrabold uppercase tracking-[0.18em] lg:text-[15px] ${
+        className={`font-display text-sm font-extrabold uppercase tracking-[0.16em] lg:text-[15px] ${
           onDark ? "text-paper" : "text-night"
         }`}
       >

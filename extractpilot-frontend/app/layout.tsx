@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import { AppProvider } from "@/providers/AppProvider";
 import "./globals.css";
 
@@ -10,10 +10,17 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
-  title: "ExtractPilot — Inbox automation for real estate teams",
+  title: "ExtractPilot — Automate your email workflow",
   description:
-    "Built for brokerages: connect multiple Gmails, run real-estate prompts, pick from 50+ AI models, and review confidence-scored extractions in minutes.",
+    "For anyone drowning in email: connect mailboxes, describe what you need, extract structured data with 50+ AI models, and push results into the tools you already use.",
 };
 
 const themeInitScript = `
@@ -30,7 +37,7 @@ const themeInitScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="en" className={`${jakarta.variable} ${syne.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

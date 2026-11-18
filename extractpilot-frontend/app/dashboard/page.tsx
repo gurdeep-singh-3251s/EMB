@@ -81,9 +81,9 @@ export default function DashboardOverviewPage() {
           ["Needs review", stats?.failed ?? "—"],
           ["Result rows", recent],
         ].map(([label, value]) => (
-          <div key={String(label)} className="saas-card p-5">
-            <p className="section-label">{label}</p>
-            <p className="metric-value mt-2 text-[1.75rem]">{value}</p>
+          <div key={String(label)} className="stat-tile">
+            <p className="relative section-label">{label}</p>
+            <p className="relative metric-value mt-2 font-display text-[1.75rem]">{value}</p>
           </div>
         ))}
       </div>
