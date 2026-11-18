@@ -68,8 +68,8 @@ export function SchemaBuilder({
   }
 
   const inputClass = compact
-    ? "input-field !rounded-lg !px-2.5 !py-2 text-[13px]"
-    : "input-field";
+    ? "input-field !min-w-0 !rounded-lg !px-2.5 !py-2 text-[13px]"
+    : "input-field !min-w-0";
 
   return (
     <div className={compact ? "space-y-2" : "space-y-3"}>
@@ -78,46 +78,79 @@ export function SchemaBuilder({
           No fields yet — Enhance with AI, pick a template, or add one below.
         </p>
       ) : null}
-      {rows.map((row, i) => (
-        <div
-          key={row.id}
-          className={`grid gap-2 border border-ink/[0.08] bg-paper md:grid-cols-[1.1fr_0.85fr_1.35fr_auto] ${
-            compact ? "rounded-xl p-2" : "rounded-2xl p-4 gap-3"
-          }`}
-        >
-          <input
-            className={inputClass}
-            placeholder="field_name"
-            value={row.key}
-            onChange={(e) => updateRow(i, { key: e.target.value })}
-          />
-          <select
-            className={inputClass}
-            value={row.spec.type}
-            onChange={(e) => updateSpec(i, { type: e.target.value as FieldSpec["type"] })}
+      {rows.map((row, i) =>
+        compact ? (
+          <div key={row.id} className="rounded-xl border border-ink/[0.08] bg-paper p-2.5">
+            <div className="grid grid-cols-[1fr_7.5rem] gap-2">
+              <input
+                className={inputClass}
+                placeholder="field_name"
+                value={row.key}
+                onChange={(e) => updateRow(i, { key: e.target.value })}
+              />
+              <select
+                className={inputClass}
+                value={row.spec.type}
+                onChange={(e) => updateSpec(i, { type: e.target.value as FieldSpec["type"] })}
+              >
+                {FIELD_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                className={`${inputClass} flex-1`}
+                placeholder="Description"
+                value={row.spec.description ?? ""}
+                onChange={(e) => updateSpec(i, { description: e.target.value })}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="!h-9 shrink-0 !px-2 text-[12px]"
+                onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div
+            key={row.id}
+            className="grid gap-3 rounded-2xl border border-ink/[0.08] bg-paper p-4 xl:grid-cols-[1.1fr_0.85fr_1.35fr_auto]"
           >
-            {FIELD_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <input
-            className={inputClass}
-            placeholder="Description"
-            value={row.spec.description ?? ""}
-            onChange={(e) => updateSpec(i, { description: e.target.value })}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            className={compact ? "!h-9 !px-2 text-[12px]" : undefined}
-            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-          >
-            Remove
-          </Button>
-        </div>
-      ))}
+            <input
+              className={inputClass}
+              placeholder="field_name"
+              value={row.key}
+              onChange={(e) => updateRow(i, { key: e.target.value })}
+            />
+            <select
+              className={inputClass}
+              value={row.spec.type}
+              onChange={(e) => updateSpec(i, { type: e.target.value as FieldSpec["type"] })}
+            >
+              {FIELD_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              className={inputClass}
+              placeholder="Description"
+              value={row.spec.description ?? ""}
+              onChange={(e) => updateSpec(i, { description: e.target.value })}
+            />
+            <Button variant="ghost" size="sm" onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
+              Remove
+            </Button>
+          </div>
+        ),
+      )}
       <Button
         variant="secondary"
         size="sm"

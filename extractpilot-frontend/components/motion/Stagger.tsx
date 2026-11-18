@@ -31,12 +31,16 @@ export function Stagger({
           duration: 0.65,
           stagger: 0.07,
           ease: "power3.out",
-          clearProps: "transform",
+          clearProps: "opacity,transform,scale",
+          overwrite: true,
         },
       );
     }, root);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(items, { clearProps: "opacity,transform,scale" });
+    };
   }, [selector]);
 
   return (

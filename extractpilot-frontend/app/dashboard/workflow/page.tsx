@@ -30,29 +30,47 @@ function WorkflowContent() {
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+    const targets = root.querySelectorAll<HTMLElement>(".wf-chrome");
+    gsap.set(targets, { clearProps: "opacity,transform" });
     const ctx = gsap.context(() => {
-      gsap.from(".wf-chrome", {
+      gsap.from(targets, {
         opacity: 0,
-        y: 10,
-        duration: 0.4,
-        stagger: 0.05,
-        ease: "power3.out",
+        y: 8,
+        duration: 0.28,
+        stagger: 0.04,
+        ease: "power2.out",
+        overwrite: true,
+        onComplete: () => gsap.set(targets, { clearProps: "opacity,transform" }),
       });
     }, root);
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(targets, { clearProps: "opacity,transform" });
+    };
   }, []);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
+    gsap.set(stage, { clearProps: "opacity,transform" });
     const ctx = gsap.context(() => {
       gsap.fromTo(
         stage,
-        { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" },
+        { opacity: 0, y: 10 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.28,
+          ease: "power2.out",
+          overwrite: true,
+          onComplete: () => gsap.set(stage, { clearProps: "opacity,transform" }),
+        },
       );
     }, stage);
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(stage, { clearProps: "opacity,transform" });
+    };
   }, [step]);
 
   return (

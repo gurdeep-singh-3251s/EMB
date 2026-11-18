@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { restClient, type FieldSpec } from "@/lib/restClient";
 import { Button } from "@/components/ui/Button";
 import {
@@ -74,35 +73,28 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
   );
 
   useLayoutEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
     const root = rootRef.current;
     if (!root) return;
+    const targets = root.querySelectorAll<HTMLElement>(".setup-pane, .setup-actionbar");
+    // Always clear any stuck opacity from prior animations
+    gsap.set(targets, { clearProps: "opacity,transform" });
     const ctx = gsap.context(() => {
-      gsap.from(".setup-pane", {
+      gsap.from(targets, {
         opacity: 0,
-        y: 12,
-        duration: 0.4,
-        stagger: 0.06,
-        ease: "power3.out",
-      });
-      gsap.from(".setup-actionbar", {
-        opacity: 0,
-        y: 16,
-        duration: 0.45,
-        delay: 0.12,
-        ease: "power3.out",
-      });
-      gsap.utils.toArray<HTMLElement>(".setup-scroll-rise").forEach((el) => {
-        gsap.from(el, {
-          scrollTrigger: { trigger: el, start: "top 92%", toggleActions: "play none none none" },
-          opacity: 0.35,
-          y: 10,
-          duration: 0.35,
-          ease: "power2.out",
-        });
+        y: 8,
+        duration: 0.28,
+        stagger: 0.04,
+        ease: "power2.out",
+        overwrite: true,
+        onComplete: () => {
+          gsap.set(targets, { clearProps: "opacity,transform" });
+        },
       });
     }, root);
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(targets, { clearProps: "opacity,transform" });
+    };
   }, []);
 
   useEffect(() => {
@@ -216,7 +208,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
         <p className="text-[13px] text-ink-muted">Plain language in → fields out. Use Enhance if you want help.</p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
+      <div className="grid gap-3 xl:grid-cols-2 xl:items-start">
         <section className="setup-pane saas-card flex flex-col p-3.5 sm:p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div>
@@ -241,7 +233,7 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
             </div>
           </div>
           <textarea
-            className="input-field min-h-[9.5rem] flex-1 resize-y !rounded-xl !px-3 !py-2.5 text-[14px] leading-relaxed lg:min-h-[12rem]"
+            className="input-field min-h-[10rem] resize-y !rounded-xl !px-3 !py-2.5 text-[14px] leading-relaxed"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={loading || enhancing}
@@ -250,16 +242,14 @@ export function ExtractionSetupStep({ onComplete }: { onComplete?: () => void })
           {rationale ? <p className="mt-2 text-[12px] text-ink-muted line-clamp-2">{rationale}</p> : null}
         </section>
 
-        <section className="setup-pane setup-scroll-rise saas-card flex flex-col p-3.5 sm:p-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div>
-              <p className="text-[13px] font-semibold text-night">Output fields</p>
-              <p className="text-[12px] text-ink-muted">
-                {rows.length} field{rows.length === 1 ? "" : "s"} · enhance can fill these
-              </p>
-            </div>
+        <section className="setup-pane saas-card flex flex-col p-3.5 sm:p-4">
+          <div className="mb-2">
+            <p className="text-[13px] font-semibold text-night">Output fields</p>
+            <p className="text-[12px] text-ink-muted">
+              {rows.length} field{rows.length === 1 ? "" : "s"} · Enhance can fill these
+            </p>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-0.5 lg:max-h-[16.5rem]">
+          <div className="max-h-[22rem] overflow-y-auto pr-0.5">
             {loading ? (
               <p className="text-[13px] text-ink-muted">Loading…</p>
             ) : (
