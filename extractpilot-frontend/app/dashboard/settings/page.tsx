@@ -169,7 +169,7 @@ export default function SettingsPage() {
           </ul>
         )}
         <a href="/dashboard/team" className="mt-3 inline-block text-xs font-semibold text-rust hover:underline">
-          Team & seats →
+          My company →
         </a>
       </Panel>
 

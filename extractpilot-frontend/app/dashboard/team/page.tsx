@@ -21,7 +21,7 @@ export default function TeamPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <p className="section-label">Workspace</p>
-        <h1 className="mt-1.5 font-display text-2xl font-semibold text-ink">Team</h1>
+        <h1 className="mt-1.5 font-display text-2xl font-semibold text-ink">My company</h1>
         <p className="mt-2 text-sm text-ink-muted">Solo workspaces today — multi-seat invites ship with org billing.</p>
       </div>
 

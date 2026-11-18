@@ -8,8 +8,12 @@ import { ExtractionRunProvider } from "@/contexts/ExtractionRunContext";
 export function DashboardShell({ children }: { children: ReactNode }) {
   return (
     <ExtractionRunProvider>
-      <BetaBanner />
-      <AppShell>{children}</AppShell>
+      <div className="flex min-h-dvh flex-col lg:h-dvh lg:overflow-hidden">
+        <BetaBanner />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <AppShell>{children}</AppShell>
+        </div>
+      </div>
     </ExtractionRunProvider>
   );
 }

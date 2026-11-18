@@ -23,6 +23,7 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: "overview", prefetch: null },
+  { href: "/dashboard/team", label: "My company", icon: "company", prefetch: null },
   { href: "/dashboard/workflow", label: "Get started", icon: "pipeline", prefetch: null },
   { href: "/dashboard/mailboxes", label: "Mailboxes", icon: "emails", prefetch: null },
   { href: "/dashboard/prompts", label: "Prompts", icon: "developers", prefetch: null },
@@ -95,14 +96,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-transparent lg:grid lg:grid-cols-[268px_1fr]">
+    <div className="min-h-0 flex-1 bg-transparent lg:grid lg:h-full lg:min-h-0 lg:grid-cols-[268px_1fr]">
       <aside
         ref={asideRef}
-        className={`border-b border-ink/[0.06] bg-paper-elevated/90 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r ${
+        className={`border-b border-ink/[0.06] bg-paper-elevated backdrop-blur-xl lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:border-b-0 lg:border-r ${
           mobileOpen ? "block" : "hidden lg:block"
         }`}
       >
-        <div className="flex h-full flex-col px-4 py-6">
+        <div className="flex min-h-full flex-col px-4 py-6">
           <GuardedLink href="/" className="mb-7 flex items-center gap-3 transition-opacity hover:opacity-85">
             <LogoMark size="sm" />
             <Wordmark subtitle="Workspace" />
@@ -127,7 +128,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="min-w-0">
+      <div className="min-w-0 lg:h-full lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 border-b border-ink/[0.06] bg-paper/80 backdrop-blur-2xl">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 lg:px-10 lg:py-4">
             <div className="flex items-center gap-3">

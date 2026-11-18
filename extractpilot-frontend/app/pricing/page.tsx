@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { BETA_ACCESS_NOTICE, FIRST_MONTH_DISCOUNT_LABEL, type PlanId } from "@repo/config/plans";
 import { restClient } from "@/lib/restClient";
@@ -100,15 +101,12 @@ export default function PricingPage() {
     <div className="marketing-shell">
       <header className="marketing-header">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <LogoMark size="sm" />
             <Wordmark subtitle="Pricing" />
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <LinkButton href="/" variant="ghost" size="sm">
-              Home
-            </LinkButton>
             <LinkButton href={docsHref} variant="ghost" size="sm">
               Docs
             </LinkButton>
