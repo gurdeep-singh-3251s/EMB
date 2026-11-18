@@ -35,6 +35,7 @@ const secondaryNav: NavItem[] = [
   { href: "/dashboard/emails", label: "All emails", icon: "emails", prefetch: "emails" },
   { href: "/dashboard/integrations", label: "Integrations", icon: "integrations", prefetch: null },
   { href: "/dashboard/ops", label: "Health", icon: "overview", prefetch: null },
+  { href: "/dashboard/activity", label: "Activity", icon: "logs", prefetch: null },
   { href: "/dashboard/developers", label: "API", icon: "developers", prefetch: null },
   { href: "/dashboard/pricing", label: "Plans", icon: "plans", prefetch: null },
   { href: "/dashboard/settings", label: "Settings", icon: "settings", prefetch: null },

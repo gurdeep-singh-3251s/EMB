@@ -60,7 +60,7 @@ class IntegrationsHandler extends BaseRestController {
     if (!userId) {
       return Response.json({ success: false, message: "Sign in required", error: null }, { status: 401 });
     }
-    const limit = Math.min(100, Number(url.searchParams.get("limit") ?? "30") || 30);
+    const limit = Math.min(200, Number(url.searchParams.get("limit") ?? "50") || 50);
     const rows = await listWorkspaceAudit(this.deps.getDb(), userId, limit);
     return this.success(
       {

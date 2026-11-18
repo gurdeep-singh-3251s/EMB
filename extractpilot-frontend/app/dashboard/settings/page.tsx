@@ -33,19 +33,13 @@ export default function SettingsPage() {
   const [usage, setUsage] = useState<UsagePayload | null>(null);
   const [integrations, setIntegrations] = useState<Integrations | null>(null);
   const [integrationMsg, setIntegrationMsg] = useState<string | null>(null);
-  const [audit, setAudit] = useState<Array<{ action: string; createdAt: string }>>([]);
   const [billingPortalLoading, setBillingPortalLoading] = useState(false);
 
   useEffect(() => {
     setApiKey(getStoredApiKey());
-    void Promise.all([
-      restClient.usage.get(),
-      restClient.integrations.get(),
-      restClient.auditLog.list(15),
-    ]).then(([usageRes, intRes, auditRes]) => {
+    void Promise.all([restClient.usage.get(), restClient.integrations.get()]).then(([usageRes, intRes]) => {
       if (usageRes.success) setUsage(usageRes.data as UsagePayload);
       if (intRes.success) setIntegrations(intRes.data);
-      if (auditRes.success) setAudit(auditRes.data.items);
     });
   }, []);
 
@@ -156,20 +150,12 @@ export default function SettingsPage() {
         {integrationMsg ? <p className="mt-2 text-sm text-moss">{integrationMsg}</p> : null}
       </Panel>
 
-      <Panel title="Audit log (recent)">
-        {audit.length === 0 ? (
-          <p className="text-sm text-ink-muted">No audit events yet.</p>
-        ) : (
-          <ul className="space-y-2 text-xs font-mono text-ink-muted">
-            {audit.map((row) => (
-              <li key={`${row.createdAt}-${row.action}`}>
-                {new Date(row.createdAt).toLocaleString()} · {row.action}
-              </li>
-            ))}
-          </ul>
-        )}
-        <a href="/dashboard/team" className="mt-3 inline-block text-xs font-semibold text-rust hover:underline">
-          My company →
+      <Panel title="Activity">
+        <p className="text-sm text-ink-muted">
+          Sign-ins, mailbox changes, extractions, prompts, billing, and other writes are recorded on the Activity page.
+        </p>
+        <a href="/dashboard/activity" className="mt-3 inline-block text-sm font-semibold text-accent hover:underline">
+          Open activity log →
         </a>
       </Panel>
 

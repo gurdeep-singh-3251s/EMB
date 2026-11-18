@@ -4,6 +4,8 @@ import type { RestHandlerDeps } from "@repo/types/restTypes";
 import { authEnabled, extractBearerToken, signAccessToken, verifyAccessToken } from "../../auth/jwt";
 import { signOAuthState, verifyOAuthState } from "../../auth/oauthState";
 import { upsertGoogleUser } from "../../auth/userRepo";
+import { resolveClientIp } from "../../auth/requestMeta";
+import { recordWorkspaceAudit } from "../../infra/workspaceIntegrations";
 import { BaseRestController } from "../helper/init";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -95,6 +97,17 @@ class AuthHandler extends BaseRestController {
       name: profile.name,
       picture: profile.picture,
     });
+
+    await recordWorkspaceAudit(this.deps.getDb(), user.id, "auth.signed_in", {
+      summary: "Signed in with Google",
+      method: "GET",
+      path: "/api/v1/auth/google/callback",
+      status: 302,
+      actorEmail: user.email,
+      actorName: user.name,
+      ip: resolveClientIp(req),
+      userAgent: req.headers.get("user-agent")?.slice(0, 180) ?? null,
+    }).catch(() => undefined);
 
     const jwt = await signAccessToken(user, this.deps.env);
     const safeNext = await verifyOAuthState(url.searchParams.get("state"), this.deps.env);

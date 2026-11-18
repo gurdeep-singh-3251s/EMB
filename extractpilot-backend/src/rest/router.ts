@@ -18,6 +18,7 @@ import { validateRestApiKey, securityHeaders } from "./middleware/apiKeyAuth";
 import { PUBLIC_REST_PATHS } from "../auth/apiKey";
 import { checkRateLimit, rateLimitResponse } from "./middleware/rateLimit";
 import { resolveClientIp } from "../auth/requestMeta";
+import { logRequestActivity } from "../infra/activityLog";
 import { getActivePlanId } from "./middleware/planLimits";
 import { requestContext } from "./requestContext";
 import {
@@ -138,9 +139,13 @@ async function handleApiV1RequestInner(req: Request, deps: RestHandlerDeps): Pro
 
 async function handleApiV1Request(req: Request, deps: RestHandlerDeps): Promise<Response | null> {
   const tenantUser = authEnabled(deps.env) ? await resolveTenantUser(req, deps.env) : null;
-  return requestContext.run({ tenantUserId: tenantUser?.id ?? null }, () =>
-    handleApiV1RequestInner(req, deps),
-  );
+  return requestContext.run({ tenantUserId: tenantUser?.id ?? null }, async () => {
+    const res = await handleApiV1RequestInner(req, deps);
+    if (res && tenantUser) {
+      await logRequestActivity(deps.getDb(), req, res, tenantUser);
+    }
+    return res;
+  });
 }
 
 export { handleApiV1Request, securityHeaders };
