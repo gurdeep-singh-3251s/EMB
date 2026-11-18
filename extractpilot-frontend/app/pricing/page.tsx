@@ -21,6 +21,13 @@ type PlanCard = {
   popular?: boolean;
 };
 
+const HIGHLIGHTS = [
+  { label: "1,000 emails / week", detail: "on Team" },
+  { label: "20+ AI models", detail: "classify + extract" },
+  { label: "Multi-mailbox", detail: "Gmail & IMAP" },
+  { label: "Confidence scores", detail: "on every run" },
+];
+
 export default function PricingPage() {
   const { user, loading: authLoading } = useAuth();
   const signedIn = Boolean(user);
@@ -29,12 +36,12 @@ export default function PricingPage() {
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
-  const headRefBinding = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    const el = headRefBinding.current;
+    const el = headRef.current;
     if (!el) return;
-    gsap.fromTo(el.children, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: "power2.out" });
+    gsap.fromTo(el.children, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.07, ease: "power2.out" });
   }, []);
 
   useEffect(() => {
@@ -65,7 +72,7 @@ export default function PricingPage() {
   const startSubscriptionCheckout = useCallback(
     async (planId: "standard" | "premium" | "enterprise") => {
       if (!signedIn) {
-        window.location.href = `/login?next=${encodeURIComponent(`/dashboard/pricing`)}`;
+        window.location.href = `/login?next=${encodeURIComponent("/dashboard/pricing")}`;
         return;
       }
       setCheckoutPlanId(planId);
@@ -85,17 +92,17 @@ export default function PricingPage() {
   const freePlan = plans.find((p) => p.id === "free");
   const workspaceHref = "/dashboard/pricing";
   const startHref = signedIn ? "/dashboard" : "/login?next=/dashboard";
-  const docsHref = signedIn ? "/dashboard/developers" : "/docs";
+  const docsHref = "/docs";
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="border-b border-ink/10 px-6 py-5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+      <header className="sticky top-0 z-20 border-b border-ink/[0.07] bg-paper/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <LogoMark size="sm" />
-            <Wordmark />
+            <Wordmark subtitle="Pricing" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <LinkButton href="/" variant="ghost" size="sm">
               Home
@@ -116,53 +123,57 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-14 lg:py-16">
-        <div ref={headRefBinding} className="max-w-2xl">
-          <p className="section-label-accent">Pricing for brokerages</p>
-          <h1 className="page-title">Plans that match how real-estate teams work.</h1>
-          <p className="page-lede">
-            Multi-Gmail workspaces, real-estate prompts, confidence scores, and 50+ AI models. Team includes{" "}
-            <strong className="font-semibold text-night">1,000 emails / week</strong> and{" "}
-            <strong className="font-semibold text-night">20+ AI models</strong>.
+      <main className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
+        <div ref={headRef} className="mx-auto max-w-3xl text-center">
+          <p className="section-label-accent">Simple pricing</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-night sm:text-5xl">
+            Start free. Scale when volume grows.
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-muted">
+            Write requirements, connect mailboxes, Extract Now. Same product on every plan — limits and AI models scale
+            up.
           </p>
           {signedIn ? (
-            <p className="mt-4 rounded-2xl border border-moss/25 bg-moss/10 px-4 py-3 text-[14px] text-night">
-              You&apos;re signed in as <strong>{user?.email}</strong>. Manage upgrades in your workspace — no second
-              login needed.
-            </p>
-          ) : null}
-          {billingEnabled ? (
-            <p className="mt-4 text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
-          ) : (
-            <p className="mt-4 rounded-2xl border border-ink/10 bg-paper-elevated px-4 py-3 text-[14px] text-ink-muted">
-              Checkout is off in this environment — use the <strong className="text-night">free console</strong> today.
-              {` ${BETA_ACCESS_NOTICE}`}
-            </p>
-          )}
-          {checkoutError ? (
-            <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900">
-              {checkoutError}
+            <p className="mt-5 inline-flex rounded-2xl border border-moss/25 bg-moss/10 px-4 py-2.5 text-[14px] text-night">
+              Signed in as <strong className="ml-1">{user?.email}</strong> — upgrades stay in your session.
             </p>
           ) : null}
         </div>
 
-        <div className="mt-14">
-          <h2 className="text-lg font-bold text-night">Monthly plans</h2>
-          <p className="mt-1 text-[15px] text-ink-muted">All prices in USD, billed monthly.</p>
+        <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {HIGHLIGHTS.map((item) => (
+            <div key={item.label} className="saas-card px-4 py-4 text-center">
+              <p className="text-[15px] font-bold text-night">{item.label}</p>
+              <p className="mt-1 text-[13px] text-ink-muted">{item.detail}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-4">
+        {billingEnabled ? (
+          <p className="mt-6 text-center text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
+        ) : (
+          <p className="mx-auto mt-6 max-w-2xl rounded-2xl border border-ink/10 bg-paper-elevated px-4 py-3 text-center text-[14px] text-ink-muted">
+            Checkout is off in this environment — use the free console today. {BETA_ACCESS_NOTICE}
+          </p>
+        )}
+        {checkoutError ? (
+          <p className="mx-auto mt-3 max-w-2xl rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-[14px] text-rose-900">
+            {checkoutError}
+          </p>
+        ) : null}
+
+        <div className="mt-12 grid gap-5 lg:grid-cols-4">
           {freePlan ? (
             <article className="saas-card flex flex-col p-6">
-              <span className="pill mb-4 !py-1">Best to start</span>
-              <h2 className="text-xl font-bold">{freePlan.name}</h2>
+              <span className="pill mb-4 !py-1">Free</span>
+              <h2 className="text-xl font-bold text-night">{freePlan.name}</h2>
               <PlanPrice priceMonthlyUsd={freePlan.priceMonthlyUsd} />
-              <p className="mt-2 text-[15px] text-ink-muted">{freePlan.tagline}</p>
+              <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">{freePlan.tagline}</p>
               <ul className="mt-6 flex-1 space-y-2.5 text-[14px] text-ink-muted">
                 {freePlan.features.map((f) => (
                   <li key={f} className="flex gap-2">
                     <span className="text-accent">✓</span>
-                    {f}
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
@@ -175,21 +186,23 @@ export default function PricingPage() {
           {paidPlans.map((plan) => (
             <article
               key={plan.id}
-              className={`saas-card relative flex flex-col p-6 ${plan.popular ? "ring-2 ring-accent/40" : ""}`}
+              className={`saas-card relative flex flex-col p-6 ${
+                plan.popular ? "ring-2 ring-accent/45 lg:-translate-y-1 lg:shadow-ledger-lg" : ""
+              }`}
             >
               {plan.popular ? (
-                <span className="pill-accent mb-4 !py-1">Most teams</span>
+                <span className="pill-accent mb-4 !py-1">Most popular</span>
               ) : (
                 <span className="mb-4 h-7" aria-hidden />
               )}
-              <h2 className="text-xl font-bold">{plan.name}</h2>
+              <h2 className="text-xl font-bold text-night">{plan.name}</h2>
               <PlanPrice priceMonthlyUsd={plan.priceMonthlyUsd} />
-              <p className="mt-2 text-[15px] text-ink-muted">{plan.tagline}</p>
+              <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">{plan.tagline}</p>
               <ul className="mt-6 flex-1 space-y-2.5 text-[14px] text-ink-muted">
                 {plan.features.map((f) => (
                   <li key={f} className="flex gap-2">
                     <span className="text-accent">✓</span>
-                    {f}
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
@@ -206,7 +219,7 @@ export default function PricingPage() {
                     ? "Redirecting…"
                     : signedIn
                       ? `Upgrade — ${plan.name}`
-                      : `Sign in to get ${plan.name}`}
+                      : `Get ${plan.name}`}
                 </Button>
               ) : (
                 <LinkButton
@@ -214,27 +227,28 @@ export default function PricingPage() {
                   variant={plan.popular ? "accent" : "secondary"}
                   className="mt-8 w-full"
                 >
-                  {signedIn ? "Manage in workspace" : "Sign in to upgrade later"}
+                  {signedIn ? "Manage in workspace" : "Start free first"}
                 </LinkButton>
               )}
             </article>
           ))}
         </div>
 
-        <div className="mt-16">
-          <h2 className="text-lg font-bold text-night">Need a hand getting live?</h2>
-          <p className="mt-1 text-[15px] text-ink-muted">
-            Optional one-time onboarding — not bundled into monthly plans.
-          </p>
+        <section className="mt-16">
+          <div className="mb-4 max-w-xl">
+            <h2 className="text-xl font-bold text-night">Need help going live?</h2>
+            <p className="mt-1 text-[15px] text-ink-muted">
+              Optional one-time setup — not required if you&apos;re comfortable in the console.
+            </p>
+          </div>
           <SetupOfferCard
             billingEnabled={billingEnabled}
             onCheckout={billingEnabled ? startSetupCheckout : undefined}
             checkoutLoading={setupLoading}
-            className="mt-4"
             fallbackHref={signedIn ? "/dashboard/workflow?step=1" : "/login?next=/dashboard"}
-            fallbackLabel={signedIn ? "Continue setup in workspace" : "Start free in the console"}
+            fallbackLabel={signedIn ? "Continue setup in workspace" : "Start free"}
           />
-        </div>
+        </section>
       </main>
     </div>
   );

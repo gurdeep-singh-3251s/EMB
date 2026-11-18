@@ -19,9 +19,9 @@ export function OnboardingChecklist({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="section-label-accent">Setup · {doneCount}/{steps.length}</p>
-            <h2 className="mt-1.5 text-xl font-bold tracking-tight text-night">Get value in 3 steps</h2>
+            <h2 className="mt-1.5 text-xl font-bold tracking-tight text-night">Get set up in 3 steps</h2>
             <p className="mt-1 text-[15px] text-ink-muted">
-              About 10 minutes. You can change prompts and mailboxes anytime.
+              About 10 minutes. You can change requirements and mailboxes anytime.
             </p>
           </div>
           {next ? (

@@ -35,20 +35,20 @@ export default function DashboardOverviewPage() {
   const onboarding = [
     {
       done: !!query,
-      label: "Pick a real-estate prompt",
-      detail: "Buyer leads, listings, showings, offers, or escrow — then save & activate.",
+      label: "Write down your requirements",
+      detail: "Describe what to pull from email and which fields you need — then save & activate.",
       href: "/dashboard/prompts",
     },
     {
       done: Boolean(mailbox?.configured),
-      label: "Connect agent Gmails",
-      detail: "Add multiple Gmail inboxes. Extraction uses the active one.",
+      label: "Connect your mailboxes",
+      detail: "Add Gmail or IMAP inboxes. Extraction uses the active mailbox.",
       href: "/dashboard/mailboxes",
     },
     {
       done: (stats?.completed ?? 0) > 0,
-      label: "Run extraction & show confidence",
-      detail: "Managers can review confidence scores before CRM sync.",
+      label: "Extract Now",
+      detail: "Run extraction and review structured results with confidence scores.",
       href: "/dashboard/workflow?step=3",
     },
   ];
@@ -62,11 +62,11 @@ export default function DashboardOverviewPage() {
           <p className="page-lede">
             {ready
               ? "Extract from any connected mailbox, review results, and keep ops moving without copy-paste."
-              : "Three clear steps. When you finish, ExtractPilot can pull structured data from your inbox."}
+              : "Three steps: write requirements, connect mailboxes, then Extract Now."}
           </p>
         </div>
         <LinkButton href={`/dashboard/workflow?step=${pipelineStep}`} variant="accent">
-          {ready ? "Run extraction" : "Start setup"}
+          {ready ? "Extract Now" : "Start setup"}
         </LinkButton>
       </div>
 
@@ -92,7 +92,7 @@ export default function DashboardOverviewPage() {
         <Panel title="Current setup" description="What the pipeline will use next time you extract">
           <dl className="space-y-4 text-[15px]">
             <div>
-              <dt className="text-ink-muted">Active prompt</dt>
+              <dt className="text-ink-muted">Active requirements</dt>
               <dd className="mt-1 font-medium text-night">
                 {query ? (
                   <>
@@ -113,7 +113,7 @@ export default function DashboardOverviewPage() {
           </dl>
           <div className="mt-5 flex flex-wrap gap-2">
             <LinkButton href="/dashboard/prompts" variant="secondary" size="sm">
-              Edit prompt
+              Edit requirements
             </LinkButton>
             <LinkButton href="/dashboard/mailboxes" variant="secondary" size="sm">
               Manage mailboxes
@@ -124,7 +124,7 @@ export default function DashboardOverviewPage() {
         <Panel title="Quick actions" description="The only places most people need day to day">
           <div className="grid gap-2">
             <LinkButton href="/dashboard/workflow?step=3" variant="primary" className="!justify-start">
-              Extract from mailbox
+              Extract Now
             </LinkButton>
             <LinkButton href="/dashboard/results" variant="secondary" className="!justify-start">
               View results

@@ -16,9 +16,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 const AFTER_SIGNIN = [
-  { n: "01", title: "Connect mailboxes", body: "ISA, agents, TC — multiple Gmails in one workspace." },
-  { n: "02", title: "Load RE prompts", body: "Buyer leads, showings, offers, escrow — ready to run." },
-  { n: "03", title: "Extract & review", body: "Confidence scores before anything hits your CRM." },
+  { n: "01", title: "Write requirements", body: "Describe what to extract and which fields you need." },
+  { n: "02", title: "Connect mailboxes", body: "Add Gmail or IMAP — extraction uses the active one." },
+  { n: "03", title: "Extract Now", body: "Run extraction and review results with confidence scores." },
 ];
 
 export default function LoginPage() {
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 <span className="text-accent" aria-hidden>
                   ✓
                 </span>
-                Multi-Gmail + real-estate prompts included
+                Multi-mailbox + requirements workflow included
               </p>
               <p className="flex gap-2">
                 <span className="text-accent" aria-hidden>

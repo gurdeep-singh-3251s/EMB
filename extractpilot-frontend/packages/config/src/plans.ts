@@ -21,20 +21,20 @@ export type PlanDefinition = {
   popular?: boolean;
 };
 
-/** Optional paid onboarding — Connect your workspace for brokerages & ops teams. */
+/** Optional paid onboarding — Connect your workspace. */
 export const SETUP_OFFER = {
   id: "setup-onboarding",
   name: "Connect your workspace",
   tagline:
-    "White-glove session for your brokerage: connect Gmail / Outlook inboxes, load real-estate prompts, run a live extract, and hand off to managers.",
+    "White-glove session: connect Gmail / Outlook inboxes, define your extraction requirements, run a live extract, and hand off to your team.",
   priceUsd: 99.99,
   compareAtUsd: 499,
   badge: "Recommended for teams",
   savingsLabel: "Save $399",
   features: [
-    "Connect multiple agent & office Gmail inboxes",
-    "Real-estate prompt pack installed (leads, listings, closings)",
-    "Confidence scores explained for your managers",
+    "Connect multiple Gmail & IMAP mailboxes",
+    "Requirements + schema configured with you",
+    "Confidence scores explained for reviewers",
     "Live test extract on your real mailbox",
   ],
 } as const;
@@ -45,7 +45,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
   free: {
     id: "free",
     name: "Starter",
-    tagline: "Prove it on one agent inbox — no card required",
+    tagline: "Try the full flow on one inbox — no card required",
     priceMonthlyUsd: 0,
     limits: {
       emailsPerPeriod: 50,
@@ -61,15 +61,15 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "10 extraction runs / day",
       "Up to 10 schema fields",
       "Multiple Gmail & IMAP mailboxes",
-      "Real-estate prompt templates",
+      "Write your own requirements",
       "Fast AI models (10+)",
-      "Confidence scores on classifications",
+      "Confidence scores",
     ],
   },
   standard: {
     id: "standard",
     name: "Team",
-    tagline: "Built for brokerage ops & sales managers",
+    tagline: "For growing ops teams that live in email",
     priceMonthlyUsd: 29.99,
     popular: true,
     limits: {
@@ -85,17 +85,17 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "1,000 emails / week",
       "80 extraction runs / day",
       "Up to 40 schema fields",
-      "20+ AI models (pick classify + extract)",
-      "Connect your workspace (multi-Gmail)",
+      "20+ AI models (classify + extract)",
+      "Connect your workspace (multi-mailbox)",
       "Confidence scores on every extract",
-      "Real-estate lead & listing prompts",
+      "Slack & webhook delivery",
       "Email support",
     ],
   },
   premium: {
     id: "premium",
     name: "Business",
-    tagline: "Higher volume for multi-office brokerages",
+    tagline: "Higher volume for multi-team operations",
     priceMonthlyUsd: 79.99,
     limits: {
       emailsPerPeriod: 5000,
@@ -111,7 +111,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "300 extraction runs / day",
       "Up to 120 schema fields",
       "35+ AI models including Sonnet & GPT-4o",
-      "Multi-office mailbox workflows",
+      "Multi-mailbox workflows",
       "Priority queue + confidence review",
       "Webhooks to CRM / Slack",
       "Priority email support",
@@ -150,9 +150,9 @@ export const BETA_DISCLAIMER =
   "Plans include model selection by tier. Monthly price locks at checkout when billing is enabled.";
 
 export const BETA_ACCESS_NOTICE =
-  "Team includes 1,000 emails/week and 20+ AI models — ideal for real-estate managers running a live demo.";
+  "Team includes 1,000 emails/week and 20+ AI models — scale when your inbox volume grows.";
 
-export const BETA_LAUNCH_LABEL = "Built for brokerages";
+export const BETA_LAUNCH_LABEL = "Inbox automation for teams";
 
 export const FIRST_MONTH_DISCOUNT_LABEL = "50% off your first month when billing is enabled";
 

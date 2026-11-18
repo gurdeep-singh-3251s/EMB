@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               ) : null}
               <GuardedLink href="/dashboard/workflow?step=1">
                 <Button variant="accent" size="sm">
-                  Extract now
+                  Extract Now
                 </Button>
               </GuardedLink>
             </div>

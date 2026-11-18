@@ -82,7 +82,9 @@ export default function DashboardPricingPage() {
       <div>
         <p className="section-label">Billing</p>
         <h1 className="page-title !mt-2">Plans & usage</h1>
-        <p className="page-lede">{BETA_DISCLAIMER}</p>
+        <p className="page-lede">
+          Start free, then scale email volume and AI models. {BETA_DISCLAIMER}
+        </p>
         <p className="mt-2 max-w-2xl text-[15px] text-ink-muted">{BETA_ACCESS_NOTICE}</p>
       </div>
 
