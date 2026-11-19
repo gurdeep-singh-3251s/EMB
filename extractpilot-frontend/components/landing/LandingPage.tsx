@@ -154,13 +154,6 @@ export function LandingPage() {
             <LinkButton href="/pricing" variant="ghost" size="sm">
               Pricing
             </LinkButton>
-            <LinkButton
-              href={signedIn ? "/dashboard/team" : "/login?next=/dashboard/team"}
-              variant="ghost"
-              size="sm"
-            >
-              My company
-            </LinkButton>
             {authLoading ? null : signedIn ? (
               <LinkButton href="/dashboard" variant="primary" size="sm">
                 Open workspace

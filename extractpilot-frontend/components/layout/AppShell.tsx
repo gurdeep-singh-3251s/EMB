@@ -23,7 +23,6 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: "overview", prefetch: null },
-  { href: "/dashboard/team", label: "My company", icon: "company", prefetch: null },
   { href: "/dashboard/workflow", label: "Get started", icon: "pipeline", prefetch: null },
   { href: "/dashboard/mailboxes", label: "Mailboxes", icon: "emails", prefetch: null },
   { href: "/dashboard/prompts", label: "Prompts", icon: "developers", prefetch: null },
