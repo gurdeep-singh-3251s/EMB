@@ -7,6 +7,7 @@ import { LinkButton } from "@/components/ui/LinkButton";
 type SetupOfferCardProps = {
   billingEnabled?: boolean;
   onCheckout?: () => void;
+  checkoutHref?: string;
   checkoutLoading?: boolean;
   className?: string;
   /** When checkout is unavailable — keep signed-in users in the workspace. */
@@ -17,6 +18,7 @@ type SetupOfferCardProps = {
 export function SetupOfferCard({
   billingEnabled,
   onCheckout,
+  checkoutHref,
   checkoutLoading,
   className = "",
   fallbackHref = "/login?next=/dashboard",
@@ -48,7 +50,11 @@ export function SetupOfferCard({
         <span className="text-[15px] text-ink-muted">one-time fee (separate from your monthly plan)</span>
       </div>
 
-      {billingEnabled && onCheckout ? (
+      {billingEnabled && checkoutHref ? (
+        <LinkButton href={checkoutHref} variant="secondary" size="lg" className="mt-6">
+          Continue
+        </LinkButton>
+      ) : billingEnabled && onCheckout ? (
         <Button
           variant="secondary"
           size="lg"
@@ -56,7 +62,7 @@ export function SetupOfferCard({
           disabled={checkoutLoading}
           onClick={() => onCheckout()}
         >
-          {checkoutLoading ? "Redirecting…" : "Request guided setup"}
+          {checkoutLoading ? "Redirecting…" : "Continue"}
         </Button>
       ) : (
         <LinkButton href={fallbackHref} variant="secondary" size="lg" className="mt-6">

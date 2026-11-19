@@ -9,7 +9,6 @@ import { LinkButton } from "@/components/ui/LinkButton";
 import { Button } from "@/components/ui/Button";
 import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
-import { PaymentLogos, RazorpayLogo } from "@/components/billing/PaymentLogos";
 import { useSearchParams } from "next/navigation";
 
 type PlanCard = {
@@ -30,8 +29,6 @@ export default function DashboardPricingPage() {
   const [activePlanId, setActivePlanId] = useState("free");
   const [billingEnabled, setBillingEnabled] = useState(false);
   const [checkoutMode, setCheckoutMode] = useState<"razorpay" | "stripe" | "demo" | "off">("off");
-  const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
-  const [setupLoading, setSetupLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [usage, setUsage] = useState<{
     emailsUsed: number;
@@ -57,33 +54,6 @@ export default function DashboardPricingPage() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
-
-  const startSubscriptionCheckout = useCallback(
-    async (planId: "standard" | "premium" | "enterprise") => {
-      setCheckoutPlanId(planId);
-      setActionError(null);
-      const res = await restClient.billing.checkout(planId);
-      setCheckoutPlanId(null);
-      if (res.success && res.data.url) {
-        window.location.href = res.data.url;
-        return;
-      }
-      setActionError(res.success ? "Checkout did not return a URL." : res.message);
-    },
-    [],
-  );
-
-  const startSetupCheckout = useCallback(async () => {
-    setSetupLoading(true);
-    setActionError(null);
-    const res = await restClient.billing.checkoutSetup();
-    setSetupLoading(false);
-    if (res.success && res.data.url) {
-      window.location.href = res.data.url;
-      return;
-    }
-    setActionError(res.success ? "Checkout did not return a URL." : res.message);
-  }, []);
 
   const openPortal = useCallback(async () => {
     setActionError(null);
@@ -163,14 +133,9 @@ export default function DashboardPricingPage() {
       <div>
         <h2 className="text-lg font-bold text-night">Monthly plans</h2>
         <p className="mt-1 text-[15px] text-ink-muted">
-          All prices in USD.
-          {checkoutMode === "razorpay"
-            ? " Upgrade opens Razorpay in US dollars."
-            : checkoutMode === "demo"
-              ? " Click Upgrade to switch tiers in this demo workspace."
-              : " Click Upgrade to switch tiers."}
+          All prices in USD. Continue to review the charge, then pay.
+          {checkoutMode === "demo" ? " Demo checkout activates the plan in this workspace." : ""}
         </p>
-        {checkoutMode === "razorpay" ? <PaymentLogos /> : null}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-4">
@@ -236,20 +201,9 @@ export default function DashboardPricingPage() {
             {plan.id === activePlanId ? (
               <p className="mt-8 text-center text-[13px] font-medium text-moss">Active</p>
             ) : billingEnabled ? (
-              <Button
-                variant={plan.popular ? "accent" : "secondary"}
-                className="mt-8 w-full"
-                disabled={checkoutPlanId === plan.id}
-                onClick={() => void startSubscriptionCheckout(plan.id as "standard" | "premium" | "enterprise")}
-              >
-                {checkoutPlanId === plan.id
-                  ? "Working…"
-                  : checkoutMode === "demo"
-                    ? `Activate ${plan.name}`
-                    : checkoutMode === "razorpay"
-                      ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
-                      : `Upgrade to ${plan.name}`}
-              </Button>
+              <LinkButton href={`/checkout?plan=${plan.id}`} variant={plan.popular ? "accent" : "secondary"} className="mt-8 w-full">
+                Continue
+              </LinkButton>
             ) : (
               <p className="mt-8 text-center text-[13px] text-ink-muted">
                 Checkout unavailable — contact support to enable billing.
@@ -266,8 +220,7 @@ export default function DashboardPricingPage() {
         </p>
         <SetupOfferCard
           billingEnabled={billingEnabled}
-          onCheckout={billingEnabled ? startSetupCheckout : undefined}
-          checkoutLoading={setupLoading}
+          checkoutHref="/checkout?plan=setup"
           className="mt-4"
           fallbackHref="/dashboard/workflow?step=1"
           fallbackLabel="Continue free setup"

@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { BETA_ACCESS_NOTICE, FIRST_MONTH_DISCOUNT_LABEL, type PlanId } from "@repo/config/plans";
 import { restClient } from "@/lib/restClient";
 import { LinkButton } from "@/components/ui/LinkButton";
-import { Button } from "@/components/ui/Button";
 import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
-import { PaymentLogos, RazorpayLogo } from "@/components/billing/PaymentLogos";
 import { useAuth } from "@/providers/AuthProvider";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -35,10 +33,6 @@ export default function PricingPage() {
   const signedIn = Boolean(user);
   const [plans, setPlans] = useState<PlanCard[]>([]);
   const [billingEnabled, setBillingEnabled] = useState(false);
-  const [checkoutMode, setCheckoutMode] = useState<"razorpay" | "stripe" | "demo" | "off">("off");
-  const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [setupLoading, setSetupLoading] = useState(false);
   const headRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -52,45 +46,14 @@ export default function PricingPage() {
       if (res.success) {
         setPlans(res.data.plans as PlanCard[]);
         setBillingEnabled(Boolean(res.data.billingEnabled));
-        setCheckoutMode(res.data.checkoutMode ?? (res.data.billingEnabled ? "razorpay" : "off"));
       }
     });
   }, []);
 
-  const startSetupCheckout = useCallback(async () => {
-    if (!signedIn) {
-      window.location.href = "/login?next=/dashboard/pricing";
-      return;
-    }
-    setSetupLoading(true);
-    setCheckoutError(null);
-    const res = await restClient.billing.checkoutSetup();
-    setSetupLoading(false);
-    if (res.success && res.data.url) {
-      window.location.href = res.data.url;
-      return;
-    }
-    setCheckoutError(res.success ? "Checkout unavailable right now." : res.message);
-  }, [signedIn]);
-
-  const startSubscriptionCheckout = useCallback(
-    async (planId: "standard" | "premium" | "enterprise") => {
-      if (!signedIn) {
-        window.location.href = `/login?next=${encodeURIComponent("/dashboard/pricing")}`;
-        return;
-      }
-      setCheckoutPlanId(planId);
-      setCheckoutError(null);
-      const res = await restClient.billing.checkout(planId);
-      setCheckoutPlanId(null);
-      if (res.success && res.data.url) {
-        window.location.href = res.data.url;
-        return;
-      }
-      setCheckoutError(res.success ? "Checkout unavailable right now." : res.message);
-    },
-    [signedIn],
-  );
+  const checkoutHref = (planId: string) => {
+    const dest = `/checkout?plan=${planId}`;
+    return signedIn || authLoading ? dest : `/login?next=${encodeURIComponent(dest)}`;
+  };
 
   const paidPlans = plans.filter((p) => p.id !== "free");
   const freePlan = plans.find((p) => p.id === "free");
@@ -151,21 +114,12 @@ export default function PricingPage() {
         </div>
 
         {billingEnabled ? (
-          <div className="mt-6 flex flex-col items-center">
-            <p className="text-center text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
-            {checkoutMode === "razorpay" ? <PaymentLogos /> : null}
-          </div>
+          <p className="mt-6 text-center text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
         ) : (
           <p className="mx-auto mt-6 max-w-2xl rounded-2xl border border-ink/10 bg-paper-elevated px-4 py-3 text-center text-[14px] text-ink-muted">
             Checkout is off in this environment — use the free console today. {BETA_ACCESS_NOTICE}
           </p>
         )}
-        {checkoutError ? (
-          <p className="mx-auto mt-3 max-w-2xl rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-[14px] text-rose-900">
-            {checkoutError}
-          </p>
-        ) : null}
-
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
           {freePlan ? (
             <article className="saas-card flex flex-col p-6">
@@ -211,26 +165,13 @@ export default function PricingPage() {
                 ))}
               </ul>
               {billingEnabled ? (
-                <Button
+                <LinkButton
+                  href={checkoutHref(plan.id)}
                   variant={plan.popular ? "accent" : "secondary"}
                   className="mt-8 w-full"
-                  disabled={checkoutPlanId === plan.id}
-                  onClick={() =>
-                    void startSubscriptionCheckout(plan.id as "standard" | "premium" | "enterprise")
-                  }
                 >
-                  {checkoutPlanId === plan.id
-                    ? "Working…"
-                    : signedIn
-                      ? checkoutMode === "demo"
-                        ? `Activate ${plan.name}`
-                        : checkoutMode === "razorpay"
-                          ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
-                          : `Upgrade — ${plan.name}`
-                      : checkoutMode === "razorpay"
-                        ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
-                        : `Get ${plan.name}`}
-                </Button>
+                  Continue
+                </LinkButton>
               ) : (
                 <LinkButton
                   href={signedIn ? workspaceHref : `/login?next=${encodeURIComponent(workspaceHref)}`}
@@ -253,8 +194,7 @@ export default function PricingPage() {
           </div>
           <SetupOfferCard
             billingEnabled={billingEnabled}
-            onCheckout={billingEnabled ? startSetupCheckout : undefined}
-            checkoutLoading={setupLoading}
+            checkoutHref={checkoutHref("setup")}
             fallbackHref={signedIn ? "/dashboard/workflow?step=1" : "/login?next=/dashboard"}
             fallbackLabel={signedIn ? "Continue setup in workspace" : "Start free"}
           />
