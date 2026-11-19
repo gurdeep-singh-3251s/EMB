@@ -128,14 +128,14 @@ export function loadEnv() {
       firstMonthCoupon: process.env.STRIPE_COUPON_FIRST_MONTH?.trim() ?? "",
     },
     /**
-     * Razorpay Checkout. Amounts are minor units (paise for INR, cents for USD).
-     * When an amount is empty, the listed plan price is charged in minor units of `currency`.
+     * Razorpay Checkout in US dollars. Amounts are cents.
+     * When an amount is empty, the listed plan price is charged in cents.
      */
     razorpay: {
       keyId: process.env.RAZORPAY_KEY_ID?.trim() ?? "",
       keySecret: process.env.RAZORPAY_KEY_SECRET?.trim() ?? "",
       webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET?.trim() ?? "",
-      currency: (process.env.RAZORPAY_CURRENCY?.trim() || "INR").toUpperCase(),
+      currency: (process.env.RAZORPAY_CURRENCY?.trim() || "USD").toUpperCase(),
       amountStandard: envOptionalNumber("RAZORPAY_AMOUNT_STANDARD"),
       amountPremium: envOptionalNumber("RAZORPAY_AMOUNT_PREMIUM"),
       amountEnterprise: envOptionalNumber("RAZORPAY_AMOUNT_ENTERPRISE"),

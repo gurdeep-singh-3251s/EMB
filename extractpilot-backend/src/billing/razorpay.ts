@@ -54,7 +54,7 @@ export function verifyWebhookSignature(secret: string, rawBody: string, signatur
   return razorpaySignaturesMatch(expected, signature);
 }
 
-/** Minor units (paise when currency is INR, cents when USD). */
+/** Cents. $24.99 is 2499. */
 export function resolveChargeAmount(
   kind: "standard" | "premium" | "enterprise" | "setup",
   config: Pick<RazorpayConfig, "amountStandard" | "amountPremium" | "amountEnterprise" | "amountSetup">,

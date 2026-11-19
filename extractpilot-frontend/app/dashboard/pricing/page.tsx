@@ -164,7 +164,7 @@ export default function DashboardPricingPage() {
         <p className="mt-1 text-[15px] text-ink-muted">
           All prices in USD.
           {checkoutMode === "razorpay"
-            ? " Upgrade opens Razorpay (UPI, cards, netbanking)."
+            ? " Upgrade opens Razorpay in US dollars."
             : checkoutMode === "demo"
               ? " Click Upgrade to switch tiers in this demo workspace."
               : " Click Upgrade to switch tiers."}
