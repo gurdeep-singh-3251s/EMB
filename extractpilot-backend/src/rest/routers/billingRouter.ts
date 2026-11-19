@@ -8,6 +8,16 @@ import { getActivePlanId, getBillingRow, upsertWorkspaceBilling } from "../middl
 import { getRequestTenantUserId } from "../requestContext";
 import { resolveCheckoutMode, stripeCheckoutReady } from "../billingMode";
 import { cacheDel, tenantCacheKey } from "../../infra/redisCache";
+import { findUserById } from "../../auth/userRepo";
+import { resolveApiPublicUrl } from "@repo/config";
+import {
+  createPaymentLink,
+  fetchPaymentLink,
+  paidPlanFromNotes,
+  resolveChargeAmount,
+  verifyPaymentLinkCallback,
+  verifyWebhookSignature,
+} from "../../billing/razorpay";
 
 function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey);
@@ -70,6 +80,15 @@ class BillingHandler extends BaseRestController {
     if (tenant instanceof Response) return tenant;
 
     const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+
+    if (mode === "razorpay") {
+      return this.startRazorpayCheckout(req, {
+        userId: tenant,
+        description: `ExtractPilot ${parsed.data.planId}`,
+        amount: resolveChargeAmount(parsed.data.planId, this.deps.env.razorpay),
+        notes: { planId: parsed.data.planId, userId: tenant },
+      });
+    }
 
     if (mode === "demo") {
       await upsertWorkspaceBilling(this.deps.getDb(), tenant, {
@@ -136,6 +155,15 @@ class BillingHandler extends BaseRestController {
     if (tenant instanceof Response) return tenant;
 
     const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+
+    if (mode === "razorpay") {
+      return this.startRazorpayCheckout(req, {
+        userId: tenant,
+        description: "ExtractPilot workspace setup",
+        amount: resolveChargeAmount("setup", this.deps.env.razorpay),
+        notes: { purchaseType: "setup-onboarding", userId: tenant },
+      });
+    }
 
     if (mode === "demo") {
       return this.success(
@@ -208,6 +236,10 @@ class BillingHandler extends BaseRestController {
   }
 
   async handleWebhook(req: Request): Promise<Response> {
+    if (req.headers.get("x-razorpay-signature")) {
+      return this.handleRazorpayWebhook(req);
+    }
+
     const stripe = this.stripe();
     const webhookSecret = this.deps.env.stripe.webhookSecret;
     if (!stripe || !webhookSecret) {
@@ -287,6 +319,134 @@ class BillingHandler extends BaseRestController {
     return Response.json({ received: true });
   }
 
+  private async startRazorpayCheckout(
+    req: Request,
+    input: {
+      userId: string;
+      description: string;
+      amount: number;
+      notes: Record<string, string>;
+    },
+  ): Promise<Response> {
+    const razorpay = this.deps.env.razorpay;
+    if (!razorpay.keyId || !razorpay.keySecret) {
+      return this.validationError("Razorpay is not configured — set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.", null);
+    }
+    if (input.amount < 100) {
+      return this.validationError("Razorpay amount must be at least 100 minor units.", null);
+    }
+
+    const user = await findUserById(this.deps.getDb(), input.userId);
+    if (!user) {
+      return this.validationError("Sign in required to manage billing.", null);
+    }
+
+    const callbackUrl = `${resolveApiPublicUrl(req, this.deps.env.auth.apiPublicUrl)}/api/v1/billing/razorpay/callback`;
+    try {
+      const link = await createPaymentLink(razorpay, {
+        amount: input.amount,
+        description: input.description,
+        referenceId: `ep_${input.notes.planId ?? "setup"}_${Date.now().toString(36)}`,
+        email: user.email,
+        name: user.name,
+        notes: input.notes,
+        callbackUrl,
+      });
+      return this.success(
+        { url: link.url, sessionId: link.id, checkoutMode: "razorpay" },
+        null,
+        200,
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Razorpay checkout failed";
+      return this.validationError(message, null);
+    }
+  }
+
+  async razorpayCallback(req: Request): Promise<Response> {
+    const origin = this.deps.env.clientOrigin.replace(/\/$/, "");
+    const url = new URL(req.url);
+    const paymentLinkId = url.searchParams.get("razorpay_payment_link_id") ?? "";
+    const referenceId = url.searchParams.get("razorpay_payment_link_reference_id") ?? "";
+    const status = url.searchParams.get("razorpay_payment_link_status") ?? "";
+    const paymentId = url.searchParams.get("razorpay_payment_id") ?? "";
+    const signature = url.searchParams.get("razorpay_signature") ?? "";
+    const fail = (path: string) => Response.redirect(`${origin}${path}`, 302);
+
+    const razorpay = this.deps.env.razorpay;
+    if (!razorpay.keySecret || !paymentLinkId || !signature) {
+      return fail("/dashboard/pricing?checkout=canceled");
+    }
+    const valid = verifyPaymentLinkCallback({
+      keySecret: razorpay.keySecret,
+      paymentLinkId,
+      referenceId,
+      status,
+      paymentId,
+      signature,
+    });
+    if (!valid || status !== "paid") {
+      return fail("/dashboard/pricing?checkout=canceled");
+    }
+
+    try {
+      const link = await fetchPaymentLink(razorpay, paymentLinkId);
+      const notes = link.notes ?? {};
+      const userId = notes.userId;
+      const planId = paidPlanFromNotes(notes);
+      if (userId && planId && link.status === "paid") {
+        await upsertWorkspaceBilling(this.deps.getDb(), userId, {
+          planId,
+          subscriptionStatus: "active",
+        });
+        await this.clearPlansCache(userId, planId);
+        return fail("/dashboard/pricing?checkout=success&mode=razorpay");
+      }
+      if (userId && notes.purchaseType === "setup-onboarding" && link.status === "paid") {
+        return fail("/dashboard/pricing?checkout=setup-success&mode=razorpay");
+      }
+    } catch {
+      return fail("/dashboard/pricing?checkout=canceled");
+    }
+    return fail("/dashboard/pricing?checkout=canceled");
+  }
+
+  private async handleRazorpayWebhook(req: Request): Promise<Response> {
+    const secret = this.deps.env.razorpay.webhookSecret;
+    const signature = req.headers.get("x-razorpay-signature") ?? "";
+    if (!secret) {
+      return Response.json({ success: false, message: "Razorpay webhook is not configured" }, { status: 503 });
+    }
+    const rawBody = await req.text();
+    if (!verifyWebhookSignature(secret, rawBody, signature)) {
+      return Response.json({ success: false, message: "Invalid signature" }, { status: 400 });
+    }
+
+    let event: {
+      event?: string;
+      payload?: { payment_link?: { entity?: { notes?: Record<string, string>; status?: string } } };
+    };
+    try {
+      event = JSON.parse(rawBody) as typeof event;
+    } catch {
+      return Response.json({ success: false, message: "Invalid webhook body" }, { status: 400 });
+    }
+    if (event.event === "payment_link.paid") {
+      const entity = event.payload?.payment_link?.entity;
+      const notes = entity?.notes;
+      const userId = notes?.userId;
+      const planId = paidPlanFromNotes(notes);
+      if (userId && planId) {
+        await upsertWorkspaceBilling(this.deps.getDb(), userId, {
+          planId,
+          subscriptionStatus: "active",
+        });
+        await this.clearPlansCache(userId, planId);
+      }
+    }
+    return Response.json({ received: true });
+  }
+
   async status(): Promise<Response> {
     const tenant = this.requireTenantUserId();
     if (tenant instanceof Response) return tenant;
@@ -301,6 +461,7 @@ class BillingHandler extends BaseRestController {
         billingEnabled: checkoutMode !== "off",
         checkoutMode,
         stripeReady: stripeCheckoutReady(this.deps.env),
+        razorpayReady: resolveCheckoutMode(this.deps.env) === "razorpay",
         inviteOnly: this.deps.env.betaInviteOnly,
         subscriptionStatus: billing?.subscriptionStatus ?? "none",
         hasStripeCustomer: !!billing?.stripeCustomerId,
@@ -317,6 +478,9 @@ async function handleBillingRouter(req: Request, deps: RestHandlerDeps): Promise
 
   if (path === "/api/v1/billing/webhook" && req.method === "POST") {
     return handler.handleWebhook(req);
+  }
+  if (path === "/api/v1/billing/razorpay/callback" && req.method === "GET") {
+    return handler.razorpayCallback(req);
   }
   if (path === "/api/v1/billing/checkout" && req.method === "POST") {
     return handler.createCheckout(req);

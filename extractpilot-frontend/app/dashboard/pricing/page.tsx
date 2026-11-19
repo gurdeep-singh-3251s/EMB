@@ -28,7 +28,7 @@ export default function DashboardPricingPage() {
   const [plans, setPlans] = useState<PlanCard[]>([]);
   const [activePlanId, setActivePlanId] = useState("free");
   const [billingEnabled, setBillingEnabled] = useState(false);
-  const [checkoutMode, setCheckoutMode] = useState<"stripe" | "demo" | "off">("off");
+  const [checkoutMode, setCheckoutMode] = useState<"razorpay" | "stripe" | "demo" | "off">("off");
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -47,8 +47,8 @@ export default function DashboardPricingPage() {
       setPlans(plansRes.data.plans as PlanCard[]);
       setActivePlanId(plansRes.data.activePlanId);
       setBillingEnabled(Boolean(plansRes.data.billingEnabled));
-      const mode = (plansRes.data as { checkoutMode?: "stripe" | "demo" | "off" }).checkoutMode;
-      setCheckoutMode(mode ?? (plansRes.data.billingEnabled ? "stripe" : "off"));
+      const mode = plansRes.data.checkoutMode;
+      setCheckoutMode(mode ?? (plansRes.data.billingEnabled ? "razorpay" : "off"));
     }
     if (usageRes.success) setUsage(usageRes.data);
   }, []);
@@ -162,8 +162,12 @@ export default function DashboardPricingPage() {
       <div>
         <h2 className="text-lg font-bold text-night">Monthly plans</h2>
         <p className="mt-1 text-[15px] text-ink-muted">
-          All prices in USD. Click Upgrade to switch tiers
-          {checkoutMode === "demo" ? " in this demo workspace" : ""}.
+          All prices in USD.
+          {checkoutMode === "razorpay"
+            ? " Upgrade opens Razorpay (UPI, cards, netbanking)."
+            : checkoutMode === "demo"
+              ? " Click Upgrade to switch tiers in this demo workspace."
+              : " Click Upgrade to switch tiers."}
         </p>
       </div>
 
@@ -240,7 +244,9 @@ export default function DashboardPricingPage() {
                   ? "Working…"
                   : checkoutMode === "demo"
                     ? `Activate ${plan.name}`
-                    : `Upgrade to ${plan.name}`}
+                    : checkoutMode === "razorpay"
+                      ? "Pay with Razorpay"
+                      : `Upgrade to ${plan.name}`}
               </Button>
             ) : (
               <p className="mt-8 text-center text-[13px] text-ink-muted">

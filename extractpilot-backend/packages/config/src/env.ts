@@ -1,5 +1,13 @@
 import { resolveAttachmentsRoot } from "./paths";
 
+function envOptionalNumber(name: string): number | null {
+  const raw = process.env[name]?.trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) throw new Error(`Invalid number for ${name} in .env`);
+  return Math.round(n);
+}
+
 function envNumber(name: string, fallback: number): number {
   const raw = process.env[name];
   if (raw === undefined || raw === "") return fallback;
@@ -119,20 +127,36 @@ export function loadEnv() {
       /** Stripe coupon id — e.g. 50% off first month (duration: once) */
       firstMonthCoupon: process.env.STRIPE_COUPON_FIRST_MONTH?.trim() ?? "",
     },
-    /** When false (default), Stripe checkout/portal are disabled — beta invite-only mode. */
+    /**
+     * Razorpay Checkout. Amounts are minor units (paise for INR, cents for USD).
+     * When an amount is empty, the listed plan price is charged in minor units of `currency`.
+     */
+    razorpay: {
+      keyId: process.env.RAZORPAY_KEY_ID?.trim() ?? "",
+      keySecret: process.env.RAZORPAY_KEY_SECRET?.trim() ?? "",
+      webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET?.trim() ?? "",
+      currency: (process.env.RAZORPAY_CURRENCY?.trim() || "INR").toUpperCase(),
+      amountStandard: envOptionalNumber("RAZORPAY_AMOUNT_STANDARD"),
+      amountPremium: envOptionalNumber("RAZORPAY_AMOUNT_PREMIUM"),
+      amountEnterprise: envOptionalNumber("RAZORPAY_AMOUNT_ENTERPRISE"),
+      amountSetup: envOptionalNumber("RAZORPAY_AMOUNT_SETUP"),
+    },
+    /** When false (default), Stripe and Razorpay checkout are disabled — beta invite-only mode. */
     enableBilling: process.env.ENABLE_BILLING === "true",
     /**
-     * Instant plan upgrades without Stripe (demo / closed beta).
-     * Defaults to ON when Stripe checkout is not fully configured.
-     * Set ENABLE_DEMO_BILLING=false to force paid checkout only via Stripe.
+     * Instant plan upgrades without a payment provider (demo / closed beta).
+     * Defaults to ON when neither Razorpay nor Stripe checkout is configured.
+     * Set ENABLE_DEMO_BILLING=false to require a real checkout.
      */
     enableDemoBilling: (() => {
       const explicit = process.env.ENABLE_DEMO_BILLING?.trim();
       if (explicit === "true") return true;
       if (explicit === "false") return false;
-      const stripeReady =
-        process.env.ENABLE_BILLING === "true" && Boolean(process.env.STRIPE_SECRET_KEY?.trim());
-      return !stripeReady;
+      const billingOn = process.env.ENABLE_BILLING === "true";
+      const stripeReady = billingOn && Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+      const razorpayReady =
+        billingOn && Boolean(process.env.RAZORPAY_KEY_ID?.trim() && process.env.RAZORPAY_KEY_SECRET?.trim());
+      return !stripeReady && !razorpayReady;
     })(),
     /** Closed beta: selected users only; surfaced in API + UI copy. */
     betaInviteOnly: process.env.BETA_INVITE_ONLY !== "false",

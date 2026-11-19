@@ -101,6 +101,7 @@ export const PUBLIC_REST_PATHS = new Set([
   "/api/v1/prompt-templates",
   "/api/v1/llm-models",
   "/api/v1/billing/webhook",
+  "/api/v1/billing/razorpay/callback",
   "/api/v1/auth/google",
   "/api/v1/auth/google/callback",
   "/api/v1/auth/signup",

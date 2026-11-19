@@ -391,7 +391,7 @@ export const restClient = {
           features: string[];
         }>;
         billingEnabled?: boolean;
-        checkoutMode?: "stripe" | "demo" | "off";
+        checkoutMode?: "razorpay" | "stripe" | "demo" | "off";
       }>("/api/v1/plans");
     },
   },

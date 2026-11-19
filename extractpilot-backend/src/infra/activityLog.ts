@@ -39,6 +39,7 @@ const SKIP_EXACT = new Set([
   "/api/v1/plans",
   "/api/v1/usage",
   "/api/v1/billing/webhook",
+  "/api/v1/billing/razorpay/callback",
 ]);
 
 export function describeActivity(method: string, path: string): { action: string; summary: string } | null {
