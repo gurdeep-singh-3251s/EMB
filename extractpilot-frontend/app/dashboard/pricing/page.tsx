@@ -9,6 +9,7 @@ import { LinkButton } from "@/components/ui/LinkButton";
 import { Button } from "@/components/ui/Button";
 import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
+import { PaymentLogos, RazorpayLogo } from "@/components/billing/PaymentLogos";
 import { useSearchParams } from "next/navigation";
 
 type PlanCard = {
@@ -169,6 +170,7 @@ export default function DashboardPricingPage() {
               ? " Click Upgrade to switch tiers in this demo workspace."
               : " Click Upgrade to switch tiers."}
         </p>
+        {checkoutMode === "razorpay" ? <PaymentLogos /> : null}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-4">
@@ -245,7 +247,7 @@ export default function DashboardPricingPage() {
                   : checkoutMode === "demo"
                     ? `Activate ${plan.name}`
                     : checkoutMode === "razorpay"
-                      ? "Pay with Razorpay"
+                      ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
                       : `Upgrade to ${plan.name}`}
               </Button>
             ) : (

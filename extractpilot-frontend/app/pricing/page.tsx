@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
 import { PlanPrice } from "@/components/pricing/PlanPrice";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
+import { PaymentLogos, RazorpayLogo } from "@/components/billing/PaymentLogos";
 import { useAuth } from "@/providers/AuthProvider";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -150,7 +151,10 @@ export default function PricingPage() {
         </div>
 
         {billingEnabled ? (
-          <p className="mt-6 text-center text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
+          <div className="mt-6 flex flex-col items-center">
+            <p className="text-center text-[14px] font-medium text-accent">{FIRST_MONTH_DISCOUNT_LABEL}</p>
+            {checkoutMode === "razorpay" ? <PaymentLogos /> : null}
+          </div>
         ) : (
           <p className="mx-auto mt-6 max-w-2xl rounded-2xl border border-ink/10 bg-paper-elevated px-4 py-3 text-center text-[14px] text-ink-muted">
             Checkout is off in this environment — use the free console today. {BETA_ACCESS_NOTICE}
@@ -221,10 +225,10 @@ export default function PricingPage() {
                       ? checkoutMode === "demo"
                         ? `Activate ${plan.name}`
                         : checkoutMode === "razorpay"
-                          ? `Pay with Razorpay`
+                          ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
                           : `Upgrade — ${plan.name}`
                       : checkoutMode === "razorpay"
-                        ? `Pay with Razorpay`
+                        ? <><RazorpayLogo className="h-4 w-4" /> Pay with Razorpay</>
                         : `Get ${plan.name}`}
                 </Button>
               ) : (
