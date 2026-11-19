@@ -7,8 +7,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LogoMark, Wordmark } from "@/components/brand/LogoMark";
 import { InboxToJsonDemo } from "@/components/landing/InboxToJsonDemo";
+import { HeroAmbient } from "@/components/motion/HeroAmbient";
+import { MotionCard } from "@/components/motion/MotionCard";
 import { useAuth } from "@/providers/AuthProvider";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+
+const providers = ["Gmail", "Outlook", "IMAP", "Shared inboxes", "Team aliases"];
 
 const audiences = [
   {
@@ -51,6 +55,21 @@ const workflowSteps = [
   },
 ];
 
+const outcomes = [
+  {
+    title: "Built for high-volume mail",
+    body: "Whether you get dozens or hundreds of emails a day, automate the reading and copy-paste work.",
+  },
+  {
+    title: "Cron jobs on Standard",
+    body: "Schedule extraction, connect Slack, webhooks, and CRM, and get a summary with the fields.",
+  },
+  {
+    title: "Confidence you can trust",
+    body: "Every classification includes a confidence score so your team knows what to review.",
+  },
+];
+
 export function LandingPage() {
   const { user, loading: authLoading } = useAuth();
   const signedIn = Boolean(user);
@@ -69,28 +88,50 @@ export function LandingPage() {
         gsap.from(headerRef.current, { y: -16, opacity: 0, duration: 0.7, ease: "power3.out" });
       }
 
-      gsap.set(".line-reveal", { yPercent: 110 });
-      gsap.to(".line-reveal", {
-        yPercent: 0,
-        duration: 0.9,
-        stagger: 0.08,
-        ease: "power4.out",
+      gsap.from(".hero-copy > *", {
+        opacity: 0,
+        y: 22,
+        duration: 0.75,
+        stagger: 0.09,
+        ease: "power3.out",
+        delay: 0.05,
       });
 
-      gsap.fromTo(
-        ".hero-demo-wrap",
-        { clipPath: "inset(14% 10% 14% 10%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.05, ease: "power3.out", delay: 0.12 },
-      );
+      gsap.from(".hero-demo-wrap", {
+        opacity: 0,
+        x: 40,
+        scale: 0.96,
+        duration: 1,
+        ease: "power3.out",
+        delay: 0.15,
+      });
 
-      gsap.utils.toArray<HTMLElement>(".rule-row").forEach((row) => {
-        gsap.from(row, {
-          scrollTrigger: { trigger: row, start: "top 90%", toggleActions: "play none none none" },
-          x: -16,
-          duration: 0.6,
-          ease: "power2.out",
-          clearProps: "transform",
+      gsap.from(".provider-chip", {
+        opacity: 0,
+        y: 10,
+        stagger: 0.05,
+        duration: 0.45,
+        ease: "power2.out",
+        delay: 0.55,
+      });
+
+      gsap.utils.toArray<HTMLElement>(".scroll-rise").forEach((block) => {
+        gsap.from(block, {
+          scrollTrigger: { trigger: block, start: "top 88%", toggleActions: "play none none none" },
+          opacity: 0,
+          y: 36,
+          duration: 0.8,
+          ease: "power3.out",
+          clearProps: "opacity,transform",
         });
+      });
+
+      gsap.to(".hero-float", {
+        y: -12,
+        duration: 3.2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
       });
     }, el);
 
@@ -126,94 +167,170 @@ export function LandingPage() {
         </div>
       </header>
 
-      <section className="flex min-h-[calc(100svh-4.5rem)] items-center border-b border-ink/15">
-        <div className="mx-auto grid w-full max-w-[1120px] gap-10 px-6 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div>
-            <h1 className="overflow-hidden font-display text-[2.4rem] font-semibold leading-[1.02] text-night sm:text-[3.2rem]">
-              <span className="line-reveal block">The inbox, as a table.</span>
+      <section className="hero-grid-line surface-noise relative flex min-h-[calc(100svh-4.5rem)] items-center overflow-hidden border-b border-ink/[0.06]">
+        <HeroAmbient />
+        <div className="relative mx-auto grid w-full max-w-[1120px] gap-8 px-6 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10 lg:py-8">
+          <div className="hero-copy">
+            <p className="font-display text-2xl font-semibold tracking-tight text-night">ExtractPilot</p>
+            <h1 className="mt-3 font-display text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-night sm:text-[2rem] lg:text-[2.35rem]">
+              Automate the inbox that never stops —{" "}
+              <span className="bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
+                structured data in minutes
+              </span>
+              .
             </h1>
-            <p className="mt-5 max-w-md text-[17px] leading-snug text-ink-muted">
-              Connect a mailbox, say which fields you need, and ExtractPilot writes them out. GPT and Sonnet do the reading.
+            <p className="mt-4 max-w-lg text-[15px] leading-snug text-ink-muted sm:text-[16px]">
+              For sales, ecommerce, support, ops, and anyone drowning in email. Connect mailboxes, write requirements in
+              plain language, use current models like GPT and Sonnet, and push clean fields into your tools.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <LinkButton href={startHref} variant="primary" size="lg">
+            <div className="mt-5 flex flex-wrap gap-3">
+              <LinkButton href={startHref} variant="accent" size="lg">
                 {signedIn ? "Open workspace" : "Start free"}
               </LinkButton>
               <LinkButton href={docsHref} variant="secondary" size="lg">
-                Docs
+                See Docs
               </LinkButton>
             </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {providers.map((name) => (
+                <span key={name} className="provider-chip pill">
+                  {name}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="hero-demo-wrap">
+          <div className="hero-demo-wrap hero-float">
             <InboxToJsonDemo className="demo-shadow" />
           </div>
         </div>
       </section>
 
-      <section className="border-b border-ink/15">
+      <section className="scroll-rise border-b border-ink/[0.06]">
         <div className="mx-auto max-w-[1120px] px-6 py-16">
-          <h2 className="font-display text-2xl font-semibold text-night">Who uses it</h2>
-          <ol className="mt-8 border-t border-ink/15">
+          <div className="max-w-2xl">
+            <p className="section-label-accent">Who it&apos;s for</p>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-night lg:text-4xl">
+              Same product for every team that lives in email.
+            </h2>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
             {audiences.map((item) => (
-              <li key={item.title} className="rule-row grid gap-2 border-b border-ink/15 py-5 sm:grid-cols-[4rem_14rem_1fr] sm:items-baseline">
-                <span className="font-mono text-[13px] text-ink-faint">{item.icon}</span>
-                <h3 className="font-semibold text-night">{item.title}</h3>
-                <p className="text-[15px] leading-snug text-ink-muted">{item.body}</p>
-              </li>
+              <MotionCard key={item.title} className="saas-card group p-7">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-display text-xl font-bold text-night">{item.title}</h3>
+                  <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-bold tracking-wide text-accent transition group-hover:bg-accent group-hover:text-white">
+                    {item.icon}
+                  </span>
+                </div>
+                <p className="mt-3 text-[16px] leading-relaxed text-ink-muted">{item.body}</p>
+              </MotionCard>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
-      <section className="border-b border-ink/15">
-        <div className="mx-auto max-w-[1120px] px-6 py-16">
-          <div className="flex items-end justify-between gap-6">
-            <h2 className="max-w-md font-display text-2xl font-semibold text-night">Four inboxes. One active extract.</h2>
-            <Link href="/dashboard/mailboxes" className="hidden text-[15px] font-semibold text-night underline decoration-ink/30 underline-offset-4 sm:inline">
-              Connect mailboxes
+      <section className="scroll-rise border-b border-ink/[0.06] bg-paper-elevated/60">
+        <div className="mx-auto grid max-w-[1120px] gap-8 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="section-label-accent">Multi-mailbox</p>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-night lg:text-4xl">
+              One workspace for every inbox that matters.
+            </h2>
+            <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-muted">
+              Connect sales, support, orders, vendor, or personal work accounts — then extract from the active mailbox
+              without sharing passwords across tools.
+            </p>
+            <Link href="/dashboard/mailboxes" className="link-arrow mt-8">
+              Connect mailboxes <span aria-hidden>↗</span>
             </Link>
           </div>
-          <ul className="mt-8 border-t border-ink/15">
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { label: "Sales inbox", meta: "leads@company.com · Gmail", state: "Active" },
-              { label: "Support desk", meta: "help@company.com · Gmail", state: "Ready" },
-              { label: "Orders", meta: "orders@shop.com · IMAP", state: "Ready" },
-              { label: "Ops", meta: "ops@company.com · Outlook", state: "Ready" },
+              { label: "Sales inbox", meta: "leads@company.com · Gmail", active: true },
+              { label: "Support desk", meta: "help@company.com · Gmail", active: false },
+              { label: "Orders / ecommerce", meta: "orders@shop.com · IMAP", active: false },
+              { label: "Ops / vendors", meta: "ops@company.com · Outlook", active: false },
             ].map((box) => (
-              <li key={box.label} className="rule-row flex items-baseline justify-between gap-4 border-b border-ink/15 py-4">
-                <span>
-                  <span className="font-semibold text-night">{box.label}</span>
-                  <span className="ml-3 text-[14px] text-ink-muted">{box.meta}</span>
-                </span>
-                <span className="font-mono text-[12px] text-ink-faint">{box.state}</span>
-              </li>
+              <MotionCard
+                key={box.label}
+                className={`p-5 transition ${
+                  box.active
+                    ? "border border-accent/35 bg-accent-soft/60 shadow-glow"
+                    : "saas-card"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-night">{box.label}</p>
+                  {box.active ? (
+                    <span className="rounded-md bg-moss/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-moss">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">Ready</span>
+                  )}
+                </div>
+                <p className="mt-2 text-[13px] text-ink-muted">{box.meta}</p>
+              </MotionCard>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-[1120px] px-6 py-16">
-        <h2 className="font-display text-2xl font-semibold text-night">How a run works</h2>
-        <ol className="mt-8 border-t border-ink/15">
-          {workflowSteps.map((step) => (
-            <li key={step.n} className="rule-row grid gap-2 border-b border-ink/15 py-5 sm:grid-cols-[4rem_16rem_1fr] sm:items-baseline">
-              <span className="font-mono text-[13px] text-ink-faint">{step.n}</span>
-              <h3 className="font-semibold text-night">{step.title}</h3>
-              <p className="text-[15px] leading-snug text-ink-muted">{step.body}</p>
-            </li>
+        <div className="scroll-rise max-w-2xl">
+          <p className="section-label">Why teams choose ExtractPilot</p>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-night">
+            Stop drowning in email. Start shipping structured work.
+          </h2>
+        </div>
+        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          {outcomes.map((item) => (
+            <MotionCard key={item.title} className="scroll-rise saas-card p-8">
+              <div className="mb-5 h-1 w-12 rounded-full bg-gradient-to-r from-accent to-accent-light" />
+              <h3 className="font-display text-xl font-bold text-night">{item.title}</h3>
+              <p className="mt-3 text-[16px] leading-relaxed text-ink-muted">{item.body}</p>
+            </MotionCard>
           ))}
-        </ol>
+        </div>
       </section>
 
-      <section className="border-t border-ink/15">
-        <div className="mx-auto flex max-w-[1120px] flex-col items-start justify-between gap-6 px-6 py-12 sm:flex-row sm:items-center">
-          <p className="max-w-md font-display text-2xl font-semibold text-night">Basic is free. Paid plans start at $24.99.</p>
-          <div className="flex gap-3">
-            <LinkButton href={startHref} variant="primary" size="lg">
+      <section className="scroll-rise mx-auto max-w-[1120px] px-6 pb-6">
+        <p className="section-label">How it works</p>
+        <h2 className="mt-3 max-w-xl font-display text-3xl font-bold tracking-tight text-night">
+          From messy inbox to CRM-ready fields.
+        </h2>
+      </section>
+
+      <section className="mx-auto grid max-w-[1120px] gap-4 px-6 pb-20 lg:grid-cols-3">
+        {workflowSteps.map((s) => (
+          <MotionCard key={s.n} className="scroll-rise saas-card flex flex-col p-8">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft font-display text-sm font-bold text-accent">
+              {s.n}
+            </span>
+            <h3 className="mt-5 font-display text-xl font-bold text-night">{s.title}</h3>
+            <p className="mt-3 flex-1 text-[16px] leading-relaxed text-ink-muted">{s.body}</p>
+          </MotionCard>
+        ))}
+      </section>
+
+      <section className="scroll-rise saas-card-dark mx-6 mb-16 max-w-[1120px] lg:mx-auto">
+        <div className="relative z-10 flex flex-col items-start justify-between gap-8 p-10 sm:p-12 lg:flex-row lg:items-center">
+          <div>
+            <p className="section-label !text-white/50">Ready when you are</p>
+            <p className="mt-3 font-display text-2xl font-bold text-white lg:text-3xl">
+              Start free. Automate your mail workflow today.
+            </p>
+            <p className="mt-3 max-w-md text-[17px] text-white/70">
+              Sign in, connect an inbox, write requirements (or pick a template), extract, then wire results into Slack,
+              Zapier, or your CRM.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <LinkButton href={startHref} variant="accent" size="lg">
               {signedIn ? "Open workspace" : "Start free"}
             </LinkButton>
-            <LinkButton href="/pricing" variant="secondary" size="lg">
-              Pricing
+            <LinkButton href={docsHref} variant="inverse" size="lg">
+              See Docs
             </LinkButton>
           </div>
         </div>

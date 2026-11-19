@@ -58,6 +58,10 @@
   body {
     @apply bg-paper text-ink antialiased;
     font-feature-settings: "kern", "liga", "calt";
+    background-image:
+      radial-gradient(1200px 600px at 10% -10%, rgb(var(--mesh-a) / 0.55), transparent 55%),
+      radial-gradient(900px 500px at 90% 0%, rgb(var(--mesh-b) / 0.45), transparent 50%);
+    background-attachment: fixed;
   }
 
   ::selection {
@@ -201,12 +205,11 @@
   }
 
   .marketing-shell {
-    @apply relative min-h-screen overflow-x-hidden bg-paper;
-    background-image: none;
+    @apply relative min-h-screen overflow-x-hidden bg-transparent;
   }
 
   .marketing-header {
-    @apply sticky top-0 z-30 border-b border-ink/15 bg-paper;
+    @apply sticky top-0 z-30 border-b border-ink/[0.06] bg-paper/75 backdrop-blur-2xl;
   }
 
   .docs-toc-link {

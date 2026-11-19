@@ -1,10 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import gsap from "gsap";
-import { motion } from "motion/react";
 import { SETUP_OFFER, formatUsdPrice, type PlanId } from "@repo/config/plans";
 import { restClient } from "@/lib/restClient";
 import { useAuth } from "@/providers/AuthProvider";
@@ -85,28 +83,10 @@ function CheckoutInner() {
 
   const amount = plan?.priceMonthlyUsd ?? null;
   const priceLabel = formatUsdPrice(amount, { suffix: isSetup ? "" : "/mo" });
-  const figure = useRef<HTMLParagraphElement>(null);
-
-  useLayoutEffect(() => {
-    const el = figure.current;
-    if (!el || amount == null) return;
-    const state = { value: 0 };
-    const tween = gsap.to(state, {
-      value: amount,
-      duration: 0.7,
-      ease: "power2.out",
-      onUpdate: () => {
-        el.textContent = formatUsdPrice(state.value, { suffix: isSetup ? "" : "/mo" });
-      },
-    });
-    return () => {
-      tween.kill();
-    };
-  }, [amount, isSetup]);
 
   return (
     <div className="min-h-dvh bg-paper">
-      <header className="mx-auto flex max-w-[760px] items-center justify-between border-b border-ink/15 px-5 py-4">
+      <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
         <Link href="/pricing" className="flex items-center gap-3">
           <LogoMark size="sm" />
           <Wordmark subtitle="Checkout" />
@@ -114,45 +94,65 @@ function CheckoutInner() {
         <ThemeToggle />
       </header>
 
-      <main className="mx-auto max-w-[760px] px-5 py-10">
-        {!valid ? (
-          <p className="text-[15px] text-ink-muted">
-            Pick a plan on the <Link href="/pricing" className="font-semibold text-night">pricing page</Link>.
-          </p>
-        ) : !ready || loading ? (
-          <p className="text-[15px] text-ink-muted">Loading the order…</p>
-        ) : (
-          <>
-            <div className="flex items-end justify-between gap-6 border-b border-ink/15 pb-6">
-              <div>
-                <h1 className="font-display text-[2rem] font-semibold leading-none text-night">{plan?.name ?? "Checkout"}</h1>
-                {user ? <p className="mt-3 text-[14px] text-ink-muted">{user.email}</p> : null}
-              </div>
-              <p ref={figure} className="font-display text-[2rem] font-semibold leading-none text-night">
-                {priceLabel}
-              </p>
-            </div>
-            {plan ? (
-              <ul className="border-b border-ink/15">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="border-b border-ink/10 py-3 text-[15px] text-ink last:border-0">
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <p className="mt-5 text-[14px] text-ink-muted">
-              {isSetup ? "One-time. Charged in US dollars." : "Monthly, in US dollars. Cancel before the next charge."}
+      <main className="mx-auto grid max-w-5xl gap-8 px-5 pb-16 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <section>
+          <p className="text-[13px] font-semibold text-ink-muted">Order</p>
+          <h1 className="mt-2 font-display text-[2rem] font-semibold tracking-tight text-night">
+            {plan ? plan.name : "Checkout"}
+          </h1>
+          {plan ? <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-ink-muted">{plan.tagline}</p> : null}
+          {plan ? (
+            <ul className="mt-6 space-y-2 text-[15px] text-ink">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex gap-2">
+                  <span className="text-accent">✓</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+
+        <aside className="rounded-[1.5rem] border border-ink/10 bg-paper-elevated p-6 shadow-premium sm:p-8">
+          {!valid ? (
+            <p className="text-[15px] text-ink-muted">
+              Choose a plan on the{" "}
+              <Link href="/pricing" className="font-semibold text-night">
+                pricing page
+              </Link>
+              .
             </p>
-            {error ? <p className="mt-4 text-[14px] text-rose-700">{error}</p> : null}
-            <motion.div whileTap={{ scale: 0.98 }} className="mt-6 max-w-xs">
-              <Button className="w-full" size="lg" disabled={busy || !plan} onClick={() => void pay()}>
-                {busy ? "Opening payment…" : amount != null ? `Pay ${formatUsdPrice(amount, { suffix: "" })}` : "Pay"}
+          ) : !ready || loading ? (
+            <p className="text-[15px] text-ink-muted">Loading your order…</p>
+          ) : (
+            <>
+              <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-ink-faint">Due today</p>
+              <p className="mt-2 font-display text-4xl font-semibold tracking-tight text-night">{priceLabel}</p>
+              <p className="mt-2 text-[14px] text-ink-muted">
+                {isSetup ? "One-time setup. Charged in US dollars." : "Billed monthly in US dollars. Cancel anytime before the next charge."}
+              </p>
+              {user ? <p className="mt-4 text-[14px] text-ink">{user.email}</p> : null}
+
+              {error ? (
+                <p className="mt-4 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3.5 py-2.5 text-[14px] text-rose-700">
+                  {error}
+                </p>
+              ) : null}
+
+              <Button className="mt-6 w-full" size="lg" disabled={busy || !plan} onClick={() => void pay()}>
+                {busy ? "Opening secure payment…" : amount != null ? `Pay ${formatUsdPrice(amount, { suffix: "" })}` : "Pay"}
               </Button>
-            </motion.div>
-            <p className="mt-3 text-[13px] text-ink-muted">Card details are taken on the next page.</p>
-          </>
-        )}
+              <p className="mt-3 text-center text-[13px] leading-relaxed text-ink-muted">
+                The next page takes the card payment. Nothing is charged on this screen.
+              </p>
+              <p className="mt-4 text-center text-[13px]">
+                <Link href="/pricing" className="font-semibold text-ink-muted hover:text-night">
+                  Back to plans
+                </Link>
+              </p>
+            </>
+          )}
+        </aside>
       </main>
     </div>
   );

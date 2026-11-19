@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { BETA_ACCESS_NOTICE, BETA_DISCLAIMER, formatUsdPrice, type PlanId } from "@repo/config/plans";
+import { BETA_ACCESS_NOTICE, BETA_DISCLAIMER, type PlanId } from "@repo/config/plans";
 import { restClient } from "@/lib/restClient";
 import { emailQuotaLabel, formatQuotaUsage } from "@/lib/formatUsage";
 import { Panel } from "@/components/ui/Panel";
+import { LinkButton } from "@/components/ui/LinkButton";
 import { Button } from "@/components/ui/Button";
+import { SetupOfferCard } from "@/components/pricing/SetupOfferCard";
+import { PlanPrice } from "@/components/pricing/PlanPrice";
+import { useSearchParams } from "next/navigation";
 
 type PlanCard = {
   id: PlanId;
@@ -69,7 +71,8 @@ export default function DashboardPricingPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="page-title">Plans</h1>
+        <p className="section-label">Billing</p>
+        <h1 className="page-title !mt-2">Plans & usage</h1>
         <p className="page-lede">
           Start free, then upgrade when you need more volume and AI models. {BETA_DISCLAIMER}
         </p>
@@ -127,40 +130,102 @@ export default function DashboardPricingPage() {
         </Panel>
       ) : null}
 
-      <ul className="border-t border-ink/15">
+      <div>
+        <h2 className="text-lg font-bold text-night">Monthly plans</h2>
+        <p className="mt-1 text-[15px] text-ink-muted">
+          All prices in USD. Continue to review the charge, then pay.
+          {checkoutMode === "demo" ? " Demo checkout activates the plan in this workspace." : ""}
+        </p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-4">
         {freePlan ? (
-          <li className="grid items-baseline gap-2 border-b border-ink/15 py-4 sm:grid-cols-[12rem_1fr_auto]">
-            <span className="font-semibold text-night">
-              {freePlan.name}
-              {freePlan.id === activePlanId ? <span className="ml-2 font-mono text-[12px] text-ink-faint">Current</span> : null}
-            </span>
-            <span className="text-[14px] text-ink-muted">{freePlan.features.slice(0, 2).join(" · ")}</span>
-            <span className="font-display text-night">{formatUsdPrice(freePlan.priceMonthlyUsd, { suffix: "" })}</span>
-          </li>
+          <article
+            className={`saas-card flex flex-col p-6 ${freePlan.id === activePlanId ? "ring-2 ring-accent/40" : ""}`}
+          >
+            {freePlan.id === activePlanId ? (
+              <span className="pill-accent mb-4 !py-1">Current plan</span>
+            ) : (
+              <span className="mb-4 h-7" aria-hidden />
+            )}
+            <h2 className="text-xl font-bold text-night">{freePlan.name}</h2>
+            <PlanPrice priceMonthlyUsd={freePlan.priceMonthlyUsd} />
+            <p className="mt-2 text-[14px] text-ink-muted">{freePlan.tagline}</p>
+            <ul className="mt-6 flex-1 space-y-2 text-[14px] text-ink-muted">
+              {freePlan.features.map((f) => (
+                <li key={f} className="flex gap-2">
+                  <span className="text-accent">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            {freePlan.id === activePlanId ? (
+              <p className="mt-8 text-center text-[13px] font-medium text-ink-muted">You&apos;re on {freePlan.name}</p>
+            ) : (
+              <LinkButton href="/dashboard/workflow?step=1" variant="secondary" className="mt-8 w-full">
+                Continue free setup
+              </LinkButton>
+            )}
+          </article>
         ) : null}
+
         {paidPlans.map((plan) => (
-          <li key={plan.id} className="border-b border-ink/15">
-            <Link
-              href={billingEnabled && plan.id !== activePlanId ? `/checkout?plan=${plan.id}` : "/dashboard/pricing"}
-              className="grid items-baseline gap-2 py-4 sm:grid-cols-[12rem_1fr_auto]"
-            >
-              <span className="font-semibold text-night">
-                {plan.name}
-                {plan.id === activePlanId ? <span className="ml-2 font-mono text-[12px] text-ink-faint">Current</span> : null}
-              </span>
-              <span className="text-[14px] text-ink-muted">{plan.features.slice(0, 2).join(" · ")}</span>
-              <span className="font-display text-night">{formatUsdPrice(plan.priceMonthlyUsd)}</span>
-            </Link>
-          </li>
+          <article
+            key={plan.id}
+            className={`saas-card flex flex-col p-6 ${
+              plan.id === activePlanId
+                ? "ring-2 ring-accent/40"
+                : plan.popular
+                  ? "ring-2 ring-accent/25 lg:-translate-y-0.5"
+                  : ""
+            }`}
+          >
+            {plan.id === activePlanId ? (
+              <span className="pill-accent mb-4 !py-1">Current plan</span>
+            ) : plan.popular ? (
+              <span className="pill-accent mb-4 !py-1">Most popular</span>
+            ) : (
+              <span className="mb-4 h-7" aria-hidden />
+            )}
+            <h2 className="text-xl font-bold text-night">{plan.name}</h2>
+            <PlanPrice priceMonthlyUsd={plan.priceMonthlyUsd} />
+            <p className="mt-2 text-[14px] text-ink-muted">{plan.tagline}</p>
+            <ul className="mt-6 flex-1 space-y-2 text-[14px] text-ink-muted">
+              {plan.features.map((f) => (
+                <li key={f} className="flex gap-2">
+                  <span className="text-accent">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            {plan.id === activePlanId ? (
+              <p className="mt-8 text-center text-[13px] font-medium text-moss">Active</p>
+            ) : billingEnabled ? (
+              <LinkButton href={`/checkout?plan=${plan.id}`} variant={plan.popular ? "accent" : "secondary"} className="mt-8 w-full">
+                Continue
+              </LinkButton>
+            ) : (
+              <p className="mt-8 text-center text-[13px] text-ink-muted">
+                Checkout unavailable — contact support to enable billing.
+              </p>
+            )}
+          </article>
         ))}
-        <li className="border-b border-ink/15">
-          <Link href={billingEnabled ? "/checkout?plan=setup" : "/dashboard/workflow?step=1"} className="grid items-baseline gap-2 py-4 sm:grid-cols-[12rem_1fr_auto]">
-            <span className="font-semibold text-night">Guided setup</span>
-            <span className="text-[14px] text-ink-muted">One sitting. Connect, write the schema, run a live extract.</span>
-            <span className="font-display text-night">$99.99</span>
-          </Link>
-        </li>
-      </ul>
+      </div>
+
+      <div className="pt-2">
+        <h2 className="text-lg font-bold text-night">Optional guided setup</h2>
+        <p className="mt-1 text-[15px] text-ink-muted">
+          One-time onboarding — not required if you&apos;re comfortable in the console.
+        </p>
+        <SetupOfferCard
+          billingEnabled={billingEnabled}
+          checkoutHref="/checkout?plan=setup"
+          className="mt-4"
+          fallbackHref="/dashboard/workflow?step=1"
+          fallbackLabel="Continue free setup"
+        />
+      </div>
     </div>
   );
 }
